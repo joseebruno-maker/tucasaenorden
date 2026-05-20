@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Home, LogOut } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/onboarding")({ component: OnboardingPage });
+export const Route = createFileRoute("/onboarding")({ component: OnboardingPage });
 
 function OnboardingPage() {
   const { user } = useAuth();
