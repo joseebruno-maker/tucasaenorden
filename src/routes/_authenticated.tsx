@@ -1,16 +1,13 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, Navigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { useHousehold } from "@/lib/household";
-import { useLocation, Navigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/app-shell";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession();
-    if (!data.session) {
-      throw redirect({ to: "/login" });
-    }
+    if (!data.session) throw redirect({ to: "/login" });
   },
   component: AuthenticatedLayout,
 });
@@ -18,23 +15,10 @@ export const Route = createFileRoute("/_authenticated")({
 function AuthenticatedLayout() {
   const { user, loading } = useAuth();
   const { household, loading: hhLoading } = useHousehold();
-  const location = useLocation();
 
-  if (loading) return null;
+  if (loading || hhLoading) return <div className="grid min-h-screen place-items-center text-muted-foreground text-sm">Cargando…</div>;
   if (!user) return <Navigate to="/login" />;
-  if (hhLoading) return null;
+  if (!household) return <Navigate to="/onboarding" />;
 
-  // Force onboarding if no household yet
-  if (!household && location.pathname !== "/onboarding") {
-    return <Navigate to="/onboarding" />;
-  }
-  if (household && location.pathname === "/onboarding") {
-    return <Navigate to="/dashboard" />;
-  }
-
-  return (
-    <AppShell>
-      <Outlet />
-    </AppShell>
-  );
+  return <AppShell><Outlet /></AppShell>;
 }
