@@ -1,14 +1,9 @@
-import { createFileRoute, Outlet, redirect, Navigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Navigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { useHousehold } from "@/lib/household";
 import { AppShell } from "@/components/app-shell";
-import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated")({
-  beforeLoad: async () => {
-    const { data } = await supabase.auth.getSession();
-    if (!data.session) throw redirect({ to: "/login" });
-  },
   component: AuthenticatedLayout,
 });
 
