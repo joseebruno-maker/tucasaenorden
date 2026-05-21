@@ -87,6 +87,38 @@ export type Database = {
           },
         ]
       }
+      household_roles: {
+        Row: {
+          created_at: string
+          household_id: string
+          id: string
+          role: Database["public"]["Enums"]["household_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          household_id: string
+          id?: string
+          role?: Database["public"]["Enums"]["household_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          household_id?: string
+          id?: string
+          role?: Database["public"]["Enums"]["household_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "household_roles_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       households: {
         Row: {
           created_at: string
@@ -110,6 +142,151 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      maintenance_items: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          frequency_days: number
+          household_id: string
+          id: string
+          last_done_at: string | null
+          name: string
+          next_due_date: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          frequency_days: number
+          household_id: string
+          id?: string
+          last_done_at?: string | null
+          name: string
+          next_due_date: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          frequency_days?: number
+          household_id?: string
+          id?: string
+          last_done_at?: string | null
+          name?: string
+          next_due_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_items_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_history: {
+        Row: {
+          amount: number | null
+          currency: string
+          household_id: string
+          id: string
+          notes: string | null
+          paid_at: string
+          paid_by: string
+          payment_id: string
+        }
+        Insert: {
+          amount?: number | null
+          currency?: string
+          household_id: string
+          id?: string
+          notes?: string | null
+          paid_at?: string
+          paid_by: string
+          payment_id: string
+        }
+        Update: {
+          amount?: number | null
+          currency?: string
+          household_id?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string
+          paid_by?: string
+          payment_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_history_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_history_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number | null
+          category: Database["public"]["Enums"]["payment_category"]
+          created_at: string
+          created_by: string
+          currency: string
+          household_id: string
+          id: string
+          name: string
+          next_due_date: string
+          notes: string | null
+          recurrence: Database["public"]["Enums"]["payment_recurrence"]
+        }
+        Insert: {
+          amount?: number | null
+          category?: Database["public"]["Enums"]["payment_category"]
+          created_at?: string
+          created_by: string
+          currency?: string
+          household_id: string
+          id?: string
+          name: string
+          next_due_date: string
+          notes?: string | null
+          recurrence?: Database["public"]["Enums"]["payment_recurrence"]
+        }
+        Update: {
+          amount?: number | null
+          category?: Database["public"]["Enums"]["payment_category"]
+          created_at?: string
+          created_by?: string
+          currency?: string
+          household_id?: string
+          id?: string
+          name?: string
+          next_due_date?: string
+          notes?: string | null
+          recurrence?: Database["public"]["Enums"]["payment_recurrence"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -222,13 +399,40 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_household_role: {
+        Args: { _household_id: string; _user_id: string }
+        Returns: Database["public"]["Enums"]["household_role"]
+      }
+      has_household_role: {
+        Args: {
+          _household_id: string
+          _role: Database["public"]["Enums"]["household_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_household_admin: {
+        Args: { _household_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_household_member: {
+        Args: { _household_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_household_member_or_admin: {
         Args: { _household_id: string; _user_id: string }
         Returns: boolean
       }
     }
     Enums: {
-      [_ in never]: never
+      household_role: "admin" | "member" | "guest"
+      payment_category: "rent" | "service" | "other"
+      payment_recurrence:
+        | "monthly"
+        | "bimonthly"
+        | "quarterly"
+        | "yearly"
+        | "one_time"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -355,6 +559,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      household_role: ["admin", "member", "guest"],
+      payment_category: ["rent", "service", "other"],
+      payment_recurrence: [
+        "monthly",
+        "bimonthly",
+        "quarterly",
+        "yearly",
+        "one_time",
+      ],
+    },
   },
 } as const

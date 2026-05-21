@@ -1,32 +1,36 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { Home, ShoppingCart, ListChecks, Calendar, Users, LogOut, Menu } from "lucide-react";
+import { Home, ShoppingCart, ListChecks, Calendar, Users, LogOut, Menu, Wrench, Wallet } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { NotificationsBell } from "./notifications-bell";
-
-const NAV = [
-  { to: "/dashboard", icon: Home, label: "Inicio" },
-  { to: "/compras", icon: ShoppingCart, label: "Compras" },
-  { to: "/pendientes", icon: ListChecks, label: "Pendientes" },
-  { to: "/calendario", icon: Calendar, label: "Calendario" },
-  { to: "/hogar", icon: Users, label: "Hogar" },
-] as const;
+import { useRole } from "@/lib/role";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [open, setOpen] = useState(false);
+  const { isAdmin, canManageNonEconomic, isGuest } = useRole();
 
   const signOut = async () => {
     await supabase.auth.signOut();
     navigate({ to: "/" });
   };
 
+  const NAV = [
+    { to: "/dashboard", icon: Home, label: "Inicio", show: true },
+    { to: "/compras", icon: ShoppingCart, label: "Compras", show: true },
+    { to: "/pendientes", icon: ListChecks, label: "Pendientes", show: true },
+    { to: "/calendario", icon: Calendar, label: "Calendario", show: !isGuest },
+    { to: "/mantenimientos", icon: Wrench, label: "Mantenimientos", show: canManageNonEconomic },
+    { to: "/pagos", icon: Wallet, label: "Pagos", show: isAdmin },
+    { to: "/hogar", icon: Users, label: "Hogar", show: true },
+  ] as const;
+
   const NavLinks = () => (
     <>
-      {NAV.map((n) => {
+      {NAV.filter((n) => n.show).map((n) => {
         const active = location.pathname.startsWith(n.to);
         return (
           <Link
@@ -50,7 +54,6 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-background">
-      {/* Desktop sidebar */}
       <aside className="hidden w-60 shrink-0 border-r bg-sidebar p-4 md:flex md:flex-col">
         <Link to="/dashboard" className="mb-6 flex items-center gap-2 px-2">
           <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
@@ -66,7 +69,6 @@ export function AppShell({ children }: { children: ReactNode }) {
         </Button>
       </aside>
 
-      {/* Mobile drawer */}
       {open && (
         <div className="fixed inset-0 z-40 md:hidden" onClick={() => setOpen(false)}>
           <div className="absolute inset-0 bg-black/40" />

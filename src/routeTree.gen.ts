@@ -15,6 +15,8 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedPendientesRouteImport } from './routes/_authenticated/pendientes'
+import { Route as AuthenticatedPagosRouteImport } from './routes/_authenticated/pagos'
+import { Route as AuthenticatedMantenimientosRouteImport } from './routes/_authenticated/mantenimientos'
 import { Route as AuthenticatedHogarRouteImport } from './routes/_authenticated/hogar'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedComprasRouteImport } from './routes/_authenticated/compras'
@@ -49,6 +51,17 @@ const AuthenticatedPendientesRoute = AuthenticatedPendientesRouteImport.update({
   path: '/pendientes',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedPagosRoute = AuthenticatedPagosRouteImport.update({
+  id: '/pagos',
+  path: '/pagos',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedMantenimientosRoute =
+  AuthenticatedMantenimientosRouteImport.update({
+    id: '/mantenimientos',
+    path: '/mantenimientos',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedHogarRoute = AuthenticatedHogarRouteImport.update({
   id: '/hogar',
   path: '/hogar',
@@ -79,6 +92,8 @@ export interface FileRoutesByFullPath {
   '/compras': typeof AuthenticatedComprasRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/hogar': typeof AuthenticatedHogarRoute
+  '/mantenimientos': typeof AuthenticatedMantenimientosRoute
+  '/pagos': typeof AuthenticatedPagosRoute
   '/pendientes': typeof AuthenticatedPendientesRoute
 }
 export interface FileRoutesByTo {
@@ -90,6 +105,8 @@ export interface FileRoutesByTo {
   '/compras': typeof AuthenticatedComprasRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/hogar': typeof AuthenticatedHogarRoute
+  '/mantenimientos': typeof AuthenticatedMantenimientosRoute
+  '/pagos': typeof AuthenticatedPagosRoute
   '/pendientes': typeof AuthenticatedPendientesRoute
 }
 export interface FileRoutesById {
@@ -103,6 +120,8 @@ export interface FileRoutesById {
   '/_authenticated/compras': typeof AuthenticatedComprasRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/hogar': typeof AuthenticatedHogarRoute
+  '/_authenticated/mantenimientos': typeof AuthenticatedMantenimientosRoute
+  '/_authenticated/pagos': typeof AuthenticatedPagosRoute
   '/_authenticated/pendientes': typeof AuthenticatedPendientesRoute
 }
 export interface FileRouteTypes {
@@ -116,6 +135,8 @@ export interface FileRouteTypes {
     | '/compras'
     | '/dashboard'
     | '/hogar'
+    | '/mantenimientos'
+    | '/pagos'
     | '/pendientes'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -127,6 +148,8 @@ export interface FileRouteTypes {
     | '/compras'
     | '/dashboard'
     | '/hogar'
+    | '/mantenimientos'
+    | '/pagos'
     | '/pendientes'
   id:
     | '__root__'
@@ -139,6 +162,8 @@ export interface FileRouteTypes {
     | '/_authenticated/compras'
     | '/_authenticated/dashboard'
     | '/_authenticated/hogar'
+    | '/_authenticated/mantenimientos'
+    | '/_authenticated/pagos'
     | '/_authenticated/pendientes'
   fileRoutesById: FileRoutesById
 }
@@ -194,6 +219,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPendientesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/pagos': {
+      id: '/_authenticated/pagos'
+      path: '/pagos'
+      fullPath: '/pagos'
+      preLoaderRoute: typeof AuthenticatedPagosRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/mantenimientos': {
+      id: '/_authenticated/mantenimientos'
+      path: '/mantenimientos'
+      fullPath: '/mantenimientos'
+      preLoaderRoute: typeof AuthenticatedMantenimientosRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/hogar': {
       id: '/_authenticated/hogar'
       path: '/hogar'
@@ -230,6 +269,8 @@ interface AuthenticatedRouteChildren {
   AuthenticatedComprasRoute: typeof AuthenticatedComprasRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedHogarRoute: typeof AuthenticatedHogarRoute
+  AuthenticatedMantenimientosRoute: typeof AuthenticatedMantenimientosRoute
+  AuthenticatedPagosRoute: typeof AuthenticatedPagosRoute
   AuthenticatedPendientesRoute: typeof AuthenticatedPendientesRoute
 }
 
@@ -238,6 +279,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedComprasRoute: AuthenticatedComprasRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedHogarRoute: AuthenticatedHogarRoute,
+  AuthenticatedMantenimientosRoute: AuthenticatedMantenimientosRoute,
+  AuthenticatedPagosRoute: AuthenticatedPagosRoute,
   AuthenticatedPendientesRoute: AuthenticatedPendientesRoute,
 }
 
