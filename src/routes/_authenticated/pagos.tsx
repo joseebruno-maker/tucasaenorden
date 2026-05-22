@@ -328,7 +328,7 @@ function NewForm({ onDone }: { onDone: () => void }) {
       name: name.trim(),
       category,
       amount: amount ? parseFloat(amount) : null,
-      currency: currency.trim().toUpperCase() || "ARS",
+      currency: currency.trim() || "Bs.",
       recurrence,
       next_due_date: next,
       notes: notes.trim() || null,
