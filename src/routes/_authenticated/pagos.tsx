@@ -73,6 +73,8 @@ function PaymentsPage() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [historyOpenFor, setHistoryOpenFor] = useState<Payment | null>(null);
+  const [payOpenFor, setPayOpenFor] = useState<Payment | null>(null);
+  const [payAmount, setPayAmount] = useState("");
 
   const { data: payments = [] } = useQuery({
     queryKey: ["payments", household?.id],
