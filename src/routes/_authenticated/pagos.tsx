@@ -217,7 +217,7 @@ function PaymentsPage() {
                     {p.notes && <div className="mt-1 text-xs text-muted-foreground">{p.notes}</div>}
                   </div>
                   <div className="flex flex-col gap-1">
-                    <Button size="sm" variant="outline" onClick={() => markPaid.mutate(p)}>
+                    <Button size="sm" variant="outline" onClick={() => openPayDialog(p)}>
                       <Check className="h-4 w-4 mr-1" />Pagado
                     </Button>
                     <div className="flex gap-1 justify-end">
