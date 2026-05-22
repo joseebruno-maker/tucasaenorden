@@ -16,6 +16,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedPendientesRouteImport } from './routes/_authenticated/pendientes'
 import { Route as AuthenticatedPagosRouteImport } from './routes/_authenticated/pagos'
+import { Route as AuthenticatedMenuRouteImport } from './routes/_authenticated/menu'
 import { Route as AuthenticatedMantenimientosRouteImport } from './routes/_authenticated/mantenimientos'
 import { Route as AuthenticatedHogarRouteImport } from './routes/_authenticated/hogar'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -56,6 +57,11 @@ const AuthenticatedPagosRoute = AuthenticatedPagosRouteImport.update({
   path: '/pagos',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedMenuRoute = AuthenticatedMenuRouteImport.update({
+  id: '/menu',
+  path: '/menu',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedMantenimientosRoute =
   AuthenticatedMantenimientosRouteImport.update({
     id: '/mantenimientos',
@@ -93,6 +99,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/hogar': typeof AuthenticatedHogarRoute
   '/mantenimientos': typeof AuthenticatedMantenimientosRoute
+  '/menu': typeof AuthenticatedMenuRoute
   '/pagos': typeof AuthenticatedPagosRoute
   '/pendientes': typeof AuthenticatedPendientesRoute
 }
@@ -106,6 +113,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/hogar': typeof AuthenticatedHogarRoute
   '/mantenimientos': typeof AuthenticatedMantenimientosRoute
+  '/menu': typeof AuthenticatedMenuRoute
   '/pagos': typeof AuthenticatedPagosRoute
   '/pendientes': typeof AuthenticatedPendientesRoute
 }
@@ -121,6 +129,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/hogar': typeof AuthenticatedHogarRoute
   '/_authenticated/mantenimientos': typeof AuthenticatedMantenimientosRoute
+  '/_authenticated/menu': typeof AuthenticatedMenuRoute
   '/_authenticated/pagos': typeof AuthenticatedPagosRoute
   '/_authenticated/pendientes': typeof AuthenticatedPendientesRoute
 }
@@ -136,6 +145,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/hogar'
     | '/mantenimientos'
+    | '/menu'
     | '/pagos'
     | '/pendientes'
   fileRoutesByTo: FileRoutesByTo
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/hogar'
     | '/mantenimientos'
+    | '/menu'
     | '/pagos'
     | '/pendientes'
   id:
@@ -163,6 +174,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/hogar'
     | '/_authenticated/mantenimientos'
+    | '/_authenticated/menu'
     | '/_authenticated/pagos'
     | '/_authenticated/pendientes'
   fileRoutesById: FileRoutesById
@@ -226,6 +238,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPagosRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/menu': {
+      id: '/_authenticated/menu'
+      path: '/menu'
+      fullPath: '/menu'
+      preLoaderRoute: typeof AuthenticatedMenuRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/mantenimientos': {
       id: '/_authenticated/mantenimientos'
       path: '/mantenimientos'
@@ -270,6 +289,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedHogarRoute: typeof AuthenticatedHogarRoute
   AuthenticatedMantenimientosRoute: typeof AuthenticatedMantenimientosRoute
+  AuthenticatedMenuRoute: typeof AuthenticatedMenuRoute
   AuthenticatedPagosRoute: typeof AuthenticatedPagosRoute
   AuthenticatedPendientesRoute: typeof AuthenticatedPendientesRoute
 }
@@ -280,6 +300,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedHogarRoute: AuthenticatedHogarRoute,
   AuthenticatedMantenimientosRoute: AuthenticatedMantenimientosRoute,
+  AuthenticatedMenuRoute: AuthenticatedMenuRoute,
   AuthenticatedPagosRoute: AuthenticatedPagosRoute,
   AuthenticatedPendientesRoute: AuthenticatedPendientesRoute,
 }
@@ -298,3 +319,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
