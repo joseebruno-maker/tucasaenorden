@@ -242,6 +242,34 @@ function PaymentsPage() {
           {historyOpenFor && <HistoryList paymentId={historyOpenFor.id} members={members} />}
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!payOpenFor} onOpenChange={(v) => !v && setPayOpenFor(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Registrar pago — {payOpenFor?.name}</DialogTitle></DialogHeader>
+          <form onSubmit={confirmPay} className="space-y-3">
+            <div>
+              <Label>Monto pagado ({payOpenFor?.currency})</Label>
+              <Input
+                type="number"
+                step="0.01"
+                min={0}
+                autoFocus
+                value={payAmount}
+                onChange={(e) => setPayAmount(e.target.value)}
+                placeholder={payOpenFor?.amount != null ? String(payOpenFor.amount) : "0.00"}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                {payOpenFor?.amount != null
+                  ? `Sugerido del último registro: ${payOpenFor.currency} ${payOpenFor.amount.toLocaleString()}. Ajustalo si cambió.`
+                  : "Dejá vacío si no aplica monto."}
+              </p>
+            </div>
+            <Button type="submit" disabled={markPaid.isPending} className="w-full">
+              {markPaid.isPending ? "Guardando…" : "Confirmar pago"}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
