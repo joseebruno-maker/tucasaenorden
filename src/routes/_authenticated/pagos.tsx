@@ -313,7 +313,7 @@ function NewForm({ onDone }: { onDone: () => void }) {
   const [name, setName] = useState("");
   const [category, setCategory] = useState<Category>("service");
   const [amount, setAmount] = useState("");
-  const [currency, setCurrency] = useState("ARS");
+  const [currency, setCurrency] = useState("Bs.");
   const [recurrence, setRecurrence] = useState<Recurrence>("monthly");
   const [next, setNext] = useState(new Date().toISOString().slice(0, 10));
   const [notes, setNotes] = useState("");
@@ -328,7 +328,7 @@ function NewForm({ onDone }: { onDone: () => void }) {
       name: name.trim(),
       category,
       amount: amount ? parseFloat(amount) : null,
-      currency: currency.trim().toUpperCase() || "ARS",
+      currency: currency.trim() || "Bs.",
       recurrence,
       next_due_date: next,
       notes: notes.trim() || null,
