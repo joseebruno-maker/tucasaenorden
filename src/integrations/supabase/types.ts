@@ -196,6 +196,39 @@ export type Database = {
           },
         ]
       }
+      menu_entries: {
+        Row: {
+          created_at: string
+          created_by: string
+          date: string
+          household_id: string
+          id: string
+          meal: Database["public"]["Enums"]["meal_slot"]
+          notes: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          date: string
+          household_id: string
+          id?: string
+          meal: Database["public"]["Enums"]["meal_slot"]
+          notes?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          date?: string
+          household_id?: string
+          id?: string
+          meal?: Database["public"]["Enums"]["meal_slot"]
+          notes?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       payment_history: {
         Row: {
           amount: number | null
@@ -432,6 +465,7 @@ export type Database = {
     }
     Enums: {
       household_role: "admin" | "member" | "guest"
+      meal_slot: "breakfast" | "lunch" | "snack" | "dinner"
       payment_category: "rent" | "service" | "other"
       payment_recurrence:
         | "monthly"
@@ -567,6 +601,7 @@ export const Constants = {
   public: {
     Enums: {
       household_role: ["admin", "member", "guest"],
+      meal_slot: ["breakfast", "lunch", "snack", "dinner"],
       payment_category: ["rent", "service", "other"],
       payment_recurrence: [
         "monthly",
