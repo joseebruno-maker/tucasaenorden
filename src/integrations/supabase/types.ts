@@ -22,6 +22,8 @@ export type Database = {
           ends_at: string | null
           household_id: string
           id: string
+          recurrence_end_date: string | null
+          recurrence_group_id: string | null
           starts_at: string
           title: string
         }
@@ -32,6 +34,8 @@ export type Database = {
           ends_at?: string | null
           household_id: string
           id?: string
+          recurrence_end_date?: string | null
+          recurrence_group_id?: string | null
           starts_at: string
           title: string
         }
@@ -42,6 +46,8 @@ export type Database = {
           ends_at?: string | null
           household_id?: string
           id?: string
+          recurrence_end_date?: string | null
+          recurrence_group_id?: string | null
           starts_at?: string
           title?: string
         }

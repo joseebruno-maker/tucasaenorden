@@ -73,6 +73,8 @@ function PaymentsPage() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [historyOpenFor, setHistoryOpenFor] = useState<Payment | null>(null);
+  const [payOpenFor, setPayOpenFor] = useState<Payment | null>(null);
+  const [payAmount, setPayAmount] = useState("");
 
   const { data: payments = [] } = useQuery({
     queryKey: ["payments", household?.id],
@@ -102,30 +104,50 @@ function PaymentsPage() {
   });
 
   const markPaid = useMutation({
-    mutationFn: async (p: Payment) => {
+    mutationFn: async ({ p, amount }: { p: Payment; amount: number | null }) => {
       const { error: histErr } = await supabase.from("payment_history").insert({
         payment_id: p.id,
         household_id: household!.id,
         paid_by: user!.id,
-        amount: p.amount,
+        amount,
         currency: p.currency,
       });
       if (histErr) throw histErr;
+      const updates: { next_due_date?: string; amount?: number | null } = {};
+      if (amount != null && amount !== p.amount) updates.amount = amount;
       if (p.recurrence !== "one_time") {
         const next = advanceDate(new Date(p.next_due_date), p.recurrence);
-        const { error } = await supabase.from("payments").update({
-          next_due_date: next.toISOString().slice(0, 10),
-        }).eq("id", p.id);
+        updates.next_due_date = next.toISOString().slice(0, 10);
+      }
+      if (Object.keys(updates).length > 0) {
+        const { error } = await supabase.from("payments").update(updates).eq("id", p.id);
         if (error) throw error;
       }
     },
     onSuccess: () => {
       toast.success("Pago registrado");
+      setPayOpenFor(null);
       qc.invalidateQueries({ queryKey: ["payments"] });
       qc.invalidateQueries({ queryKey: ["payment-history"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const openPayDialog = (p: Payment) => {
+    setPayAmount(p.amount != null ? String(p.amount) : "");
+    setPayOpenFor(p);
+  };
+
+  const confirmPay = (e: FormEvent) => {
+    e.preventDefault();
+    if (!payOpenFor) return;
+    const parsed = payAmount.trim() === "" ? null : parseFloat(payAmount);
+    if (parsed != null && (isNaN(parsed) || parsed < 0)) {
+      toast.error("Monto inválido");
+      return;
+    }
+    markPaid.mutate({ p: payOpenFor, amount: parsed });
+  };
 
   const del = useMutation({
     mutationFn: async (id: string) => {
@@ -195,7 +217,7 @@ function PaymentsPage() {
                     {p.notes && <div className="mt-1 text-xs text-muted-foreground">{p.notes}</div>}
                   </div>
                   <div className="flex flex-col gap-1">
-                    <Button size="sm" variant="outline" onClick={() => markPaid.mutate(p)}>
+                    <Button size="sm" variant="outline" onClick={() => openPayDialog(p)}>
                       <Check className="h-4 w-4 mr-1" />Pagado
                     </Button>
                     <div className="flex gap-1 justify-end">
@@ -218,6 +240,34 @@ function PaymentsPage() {
         <DialogContent>
           <DialogHeader><DialogTitle>Historial — {historyOpenFor?.name}</DialogTitle></DialogHeader>
           {historyOpenFor && <HistoryList paymentId={historyOpenFor.id} members={members} />}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!payOpenFor} onOpenChange={(v) => !v && setPayOpenFor(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Registrar pago — {payOpenFor?.name}</DialogTitle></DialogHeader>
+          <form onSubmit={confirmPay} className="space-y-3">
+            <div>
+              <Label>Monto pagado ({payOpenFor?.currency})</Label>
+              <Input
+                type="number"
+                step="0.01"
+                min={0}
+                autoFocus
+                value={payAmount}
+                onChange={(e) => setPayAmount(e.target.value)}
+                placeholder={payOpenFor?.amount != null ? String(payOpenFor.amount) : "0.00"}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                {payOpenFor?.amount != null
+                  ? `Sugerido del último registro: ${payOpenFor.currency} ${payOpenFor.amount.toLocaleString()}. Ajustalo si cambió.`
+                  : "Dejá vacío si no aplica monto."}
+              </p>
+            </div>
+            <Button type="submit" disabled={markPaid.isPending} className="w-full">
+              {markPaid.isPending ? "Guardando…" : "Confirmar pago"}
+            </Button>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
