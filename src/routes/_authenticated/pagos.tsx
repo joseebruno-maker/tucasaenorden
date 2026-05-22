@@ -104,30 +104,50 @@ function PaymentsPage() {
   });
 
   const markPaid = useMutation({
-    mutationFn: async (p: Payment) => {
+    mutationFn: async ({ p, amount }: { p: Payment; amount: number | null }) => {
       const { error: histErr } = await supabase.from("payment_history").insert({
         payment_id: p.id,
         household_id: household!.id,
         paid_by: user!.id,
-        amount: p.amount,
+        amount,
         currency: p.currency,
       });
       if (histErr) throw histErr;
+      const updates: { next_due_date?: string; amount?: number | null } = {};
+      if (amount != null && amount !== p.amount) updates.amount = amount;
       if (p.recurrence !== "one_time") {
         const next = advanceDate(new Date(p.next_due_date), p.recurrence);
-        const { error } = await supabase.from("payments").update({
-          next_due_date: next.toISOString().slice(0, 10),
-        }).eq("id", p.id);
+        updates.next_due_date = next.toISOString().slice(0, 10);
+      }
+      if (Object.keys(updates).length > 0) {
+        const { error } = await supabase.from("payments").update(updates).eq("id", p.id);
         if (error) throw error;
       }
     },
     onSuccess: () => {
       toast.success("Pago registrado");
+      setPayOpenFor(null);
       qc.invalidateQueries({ queryKey: ["payments"] });
       qc.invalidateQueries({ queryKey: ["payment-history"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const openPayDialog = (p: Payment) => {
+    setPayAmount(p.amount != null ? String(p.amount) : "");
+    setPayOpenFor(p);
+  };
+
+  const confirmPay = (e: FormEvent) => {
+    e.preventDefault();
+    if (!payOpenFor) return;
+    const parsed = payAmount.trim() === "" ? null : parseFloat(payAmount);
+    if (parsed != null && (isNaN(parsed) || parsed < 0)) {
+      toast.error("Monto inválido");
+      return;
+    }
+    markPaid.mutate({ p: payOpenFor, amount: parsed });
+  };
 
   const del = useMutation({
     mutationFn: async (id: string) => {
