@@ -26,6 +26,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     { to: "/mantenimientos", icon: Wrench, label: "Mantenimientos", show: canManageNonEconomic },
     { to: "/menu", icon: UtensilsCrossed, label: "Menú semanal", show: canManageNonEconomic },
     { to: "/recetario", icon: ChefHat, label: "Recetario", show: true },
+    { to: "/actividades", icon: Map, label: "Actividades", show: true },
     { to: "/pagos", icon: Wallet, label: "Pagos", show: isAdmin },
     { to: "/hogar", icon: Users, label: "Hogar", show: true },
   ] as const;
