@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { Home, ShoppingCart, ListChecks, Calendar, Users, LogOut, Menu, Wrench, Wallet, UtensilsCrossed, ChefHat } from "lucide-react";
+import { Home, ShoppingCart, ListChecks, Calendar, Users, LogOut, Menu, Wrench, Wallet, UtensilsCrossed, ChefHat, Map } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -26,6 +26,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     { to: "/mantenimientos", icon: Wrench, label: "Mantenimientos", show: canManageNonEconomic },
     { to: "/menu", icon: UtensilsCrossed, label: "Menú semanal", show: canManageNonEconomic },
     { to: "/recetario", icon: ChefHat, label: "Recetario", show: true },
+    { to: "/actividades", icon: Map, label: "Actividades", show: true },
     { to: "/pagos", icon: Wallet, label: "Pagos", show: isAdmin },
     { to: "/hogar", icon: Users, label: "Hogar", show: true },
   ] as const;
