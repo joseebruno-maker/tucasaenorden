@@ -14,6 +14,7 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRecetarioRouteImport } from './routes/_authenticated/recetario'
 import { Route as AuthenticatedPendientesRouteImport } from './routes/_authenticated/pendientes'
 import { Route as AuthenticatedPagosRouteImport } from './routes/_authenticated/pagos'
 import { Route as AuthenticatedMenuRouteImport } from './routes/_authenticated/menu'
@@ -46,6 +47,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRecetarioRoute = AuthenticatedRecetarioRouteImport.update({
+  id: '/recetario',
+  path: '/recetario',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedPendientesRoute = AuthenticatedPendientesRouteImport.update({
   id: '/pendientes',
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/menu': typeof AuthenticatedMenuRoute
   '/pagos': typeof AuthenticatedPagosRoute
   '/pendientes': typeof AuthenticatedPendientesRoute
+  '/recetario': typeof AuthenticatedRecetarioRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -116,6 +123,7 @@ export interface FileRoutesByTo {
   '/menu': typeof AuthenticatedMenuRoute
   '/pagos': typeof AuthenticatedPagosRoute
   '/pendientes': typeof AuthenticatedPendientesRoute
+  '/recetario': typeof AuthenticatedRecetarioRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -132,6 +140,7 @@ export interface FileRoutesById {
   '/_authenticated/menu': typeof AuthenticatedMenuRoute
   '/_authenticated/pagos': typeof AuthenticatedPagosRoute
   '/_authenticated/pendientes': typeof AuthenticatedPendientesRoute
+  '/_authenticated/recetario': typeof AuthenticatedRecetarioRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -148,6 +157,7 @@ export interface FileRouteTypes {
     | '/menu'
     | '/pagos'
     | '/pendientes'
+    | '/recetario'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -162,6 +172,7 @@ export interface FileRouteTypes {
     | '/menu'
     | '/pagos'
     | '/pendientes'
+    | '/recetario'
   id:
     | '__root__'
     | '/'
@@ -177,6 +188,7 @@ export interface FileRouteTypes {
     | '/_authenticated/menu'
     | '/_authenticated/pagos'
     | '/_authenticated/pendientes'
+    | '/_authenticated/recetario'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -223,6 +235,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/recetario': {
+      id: '/_authenticated/recetario'
+      path: '/recetario'
+      fullPath: '/recetario'
+      preLoaderRoute: typeof AuthenticatedRecetarioRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/pendientes': {
       id: '/_authenticated/pendientes'
@@ -292,6 +311,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedMenuRoute: typeof AuthenticatedMenuRoute
   AuthenticatedPagosRoute: typeof AuthenticatedPagosRoute
   AuthenticatedPendientesRoute: typeof AuthenticatedPendientesRoute
+  AuthenticatedRecetarioRoute: typeof AuthenticatedRecetarioRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -303,6 +323,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMenuRoute: AuthenticatedMenuRoute,
   AuthenticatedPagosRoute: AuthenticatedPagosRoute,
   AuthenticatedPendientesRoute: AuthenticatedPendientesRoute,
+  AuthenticatedRecetarioRoute: AuthenticatedRecetarioRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
@@ -319,13 +340,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

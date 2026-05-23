@@ -348,6 +348,44 @@ export type Database = {
         }
         Relationships: []
       }
+      recipes: {
+        Row: {
+          created_at: string
+          created_by: string
+          household_id: string
+          id: string
+          ingredients: string[]
+          name: string
+          steps: string[]
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          household_id: string
+          id?: string
+          ingredients?: string[]
+          name: string
+          steps?: string[]
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          household_id?: string
+          id?: string
+          ingredients?: string[]
+          name?: string
+          steps?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipes_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shopping_items: {
         Row: {
           bought: boolean
