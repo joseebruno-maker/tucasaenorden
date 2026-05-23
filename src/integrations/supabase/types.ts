@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      activities: {
+        Row: {
+          created_at: string
+          created_by: string
+          household_id: string
+          id: string
+          location: string | null
+          name: string
+          notes: string | null
+          status: Database["public"]["Enums"]["activity_status"]
+          type: Database["public"]["Enums"]["activity_type"]
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          household_id: string
+          id?: string
+          location?: string | null
+          name: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["activity_status"]
+          type?: Database["public"]["Enums"]["activity_type"]
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          household_id?: string
+          id?: string
+          location?: string | null
+          name?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["activity_status"]
+          type?: Database["public"]["Enums"]["activity_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activities_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           created_at: string
@@ -502,6 +546,8 @@ export type Database = {
       }
     }
     Enums: {
+      activity_status: "pending" | "done"
+      activity_type: "restaurante" | "actividad" | "salida" | "viaje" | "otro"
       household_role: "admin" | "member" | "guest"
       meal_slot: "breakfast" | "lunch" | "snack" | "dinner"
       payment_category: "rent" | "service" | "other"
@@ -638,6 +684,8 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      activity_status: ["pending", "done"],
+      activity_type: ["restaurante", "actividad", "salida", "viaje", "otro"],
       household_role: ["admin", "member", "guest"],
       meal_slot: ["breakfast", "lunch", "snack", "dinner"],
       payment_category: ["rent", "service", "other"],
