@@ -105,6 +105,104 @@ export type Database = {
           },
         ]
       }
+      expense_categories: {
+        Row: {
+          color: string
+          created_at: string
+          created_by: string
+          household_id: string
+          id: string
+          monthly_budget: number | null
+          name: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          created_by: string
+          household_id: string
+          id?: string
+          monthly_budget?: number | null
+          name: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          created_by?: string
+          household_id?: string
+          id?: string
+          monthly_budget?: number | null
+          name?: string
+        }
+        Relationships: []
+      }
+      expense_permissions: {
+        Row: {
+          created_at: string
+          household_id: string
+          id: string
+          permission: Database["public"]["Enums"]["expense_permission"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          household_id: string
+          id?: string
+          permission?: Database["public"]["Enums"]["expense_permission"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          household_id?: string
+          id?: string
+          permission?: Database["public"]["Enums"]["expense_permission"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      expenses: {
+        Row: {
+          amount: number
+          category_id: string | null
+          created_at: string
+          created_by: string
+          currency: string
+          description: string | null
+          household_id: string
+          id: string
+          spent_at: string
+        }
+        Insert: {
+          amount: number
+          category_id?: string | null
+          created_at?: string
+          created_by: string
+          currency?: string
+          description?: string | null
+          household_id: string
+          id?: string
+          spent_at?: string
+        }
+        Update: {
+          amount?: number
+          category_id?: string | null
+          created_at?: string
+          created_by?: string
+          currency?: string
+          description?: string | null
+          household_id?: string
+          id?: string
+          spent_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       household_members: {
         Row: {
           household_id: string
@@ -520,6 +618,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_edit_expenses: {
+        Args: { _household_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_view_expenses: {
+        Args: { _household_id: string; _user_id: string }
+        Returns: boolean
+      }
+      get_expense_permission: {
+        Args: { _household_id: string; _user_id: string }
+        Returns: Database["public"]["Enums"]["expense_permission"]
+      }
       get_household_role: {
         Args: { _household_id: string; _user_id: string }
         Returns: Database["public"]["Enums"]["household_role"]
@@ -548,6 +658,7 @@ export type Database = {
     Enums: {
       activity_status: "pending" | "done"
       activity_type: "restaurante" | "actividad" | "salida" | "viaje" | "otro"
+      expense_permission: "none" | "view" | "edit"
       household_role: "admin" | "member" | "guest"
       meal_slot: "breakfast" | "lunch" | "snack" | "dinner"
       payment_category: "rent" | "service" | "other"
@@ -686,6 +797,7 @@ export const Constants = {
     Enums: {
       activity_status: ["pending", "done"],
       activity_type: ["restaurante", "actividad", "salida", "viaje", "otro"],
+      expense_permission: ["none", "view", "edit"],
       household_role: ["admin", "member", "guest"],
       meal_slot: ["breakfast", "lunch", "snack", "dinner"],
       payment_category: ["rent", "service", "other"],
