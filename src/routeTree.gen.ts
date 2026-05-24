@@ -20,6 +20,7 @@ import { Route as AuthenticatedPagosRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedMenuRouteImport } from './routes/_authenticated/menu'
 import { Route as AuthenticatedMantenimientosRouteImport } from './routes/_authenticated/mantenimientos'
 import { Route as AuthenticatedHogarRouteImport } from './routes/_authenticated/hogar'
+import { Route as AuthenticatedGastosRouteImport } from './routes/_authenticated/gastos'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedComprasRouteImport } from './routes/_authenticated/compras'
 import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
@@ -80,6 +81,11 @@ const AuthenticatedHogarRoute = AuthenticatedHogarRouteImport.update({
   path: '/hogar',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedGastosRoute = AuthenticatedGastosRouteImport.update({
+  id: '/gastos',
+  path: '/gastos',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -111,6 +117,7 @@ export interface FileRoutesByFullPath {
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/compras': typeof AuthenticatedComprasRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/gastos': typeof AuthenticatedGastosRoute
   '/hogar': typeof AuthenticatedHogarRoute
   '/mantenimientos': typeof AuthenticatedMantenimientosRoute
   '/menu': typeof AuthenticatedMenuRoute
@@ -127,6 +134,7 @@ export interface FileRoutesByTo {
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/compras': typeof AuthenticatedComprasRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/gastos': typeof AuthenticatedGastosRoute
   '/hogar': typeof AuthenticatedHogarRoute
   '/mantenimientos': typeof AuthenticatedMantenimientosRoute
   '/menu': typeof AuthenticatedMenuRoute
@@ -145,6 +153,7 @@ export interface FileRoutesById {
   '/_authenticated/calendario': typeof AuthenticatedCalendarioRoute
   '/_authenticated/compras': typeof AuthenticatedComprasRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/gastos': typeof AuthenticatedGastosRoute
   '/_authenticated/hogar': typeof AuthenticatedHogarRoute
   '/_authenticated/mantenimientos': typeof AuthenticatedMantenimientosRoute
   '/_authenticated/menu': typeof AuthenticatedMenuRoute
@@ -163,6 +172,7 @@ export interface FileRouteTypes {
     | '/calendario'
     | '/compras'
     | '/dashboard'
+    | '/gastos'
     | '/hogar'
     | '/mantenimientos'
     | '/menu'
@@ -179,6 +189,7 @@ export interface FileRouteTypes {
     | '/calendario'
     | '/compras'
     | '/dashboard'
+    | '/gastos'
     | '/hogar'
     | '/mantenimientos'
     | '/menu'
@@ -196,6 +207,7 @@ export interface FileRouteTypes {
     | '/_authenticated/calendario'
     | '/_authenticated/compras'
     | '/_authenticated/dashboard'
+    | '/_authenticated/gastos'
     | '/_authenticated/hogar'
     | '/_authenticated/mantenimientos'
     | '/_authenticated/menu'
@@ -291,6 +303,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHogarRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/gastos': {
+      id: '/_authenticated/gastos'
+      path: '/gastos'
+      fullPath: '/gastos'
+      preLoaderRoute: typeof AuthenticatedGastosRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -327,6 +346,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCalendarioRoute: typeof AuthenticatedCalendarioRoute
   AuthenticatedComprasRoute: typeof AuthenticatedComprasRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedGastosRoute: typeof AuthenticatedGastosRoute
   AuthenticatedHogarRoute: typeof AuthenticatedHogarRoute
   AuthenticatedMantenimientosRoute: typeof AuthenticatedMantenimientosRoute
   AuthenticatedMenuRoute: typeof AuthenticatedMenuRoute
@@ -340,6 +360,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCalendarioRoute: AuthenticatedCalendarioRoute,
   AuthenticatedComprasRoute: AuthenticatedComprasRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedGastosRoute: AuthenticatedGastosRoute,
   AuthenticatedHogarRoute: AuthenticatedHogarRoute,
   AuthenticatedMantenimientosRoute: AuthenticatedMantenimientosRoute,
   AuthenticatedMenuRoute: AuthenticatedMenuRoute,
