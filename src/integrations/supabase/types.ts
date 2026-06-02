@@ -371,6 +371,83 @@ export type Database = {
         }
         Relationships: []
       }
+      note_items: {
+        Row: {
+          created_at: string
+          created_by: string
+          done: boolean
+          household_id: string
+          id: string
+          note_id: string
+          position: number
+          text: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          done?: boolean
+          household_id: string
+          id?: string
+          note_id: string
+          position?: number
+          text: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          done?: boolean
+          household_id?: string
+          id?: string
+          note_id?: string
+          position?: number
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "note_items_note_id_fkey"
+            columns: ["note_id"]
+            isOneToOne: false
+            referencedRelation: "notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notes: {
+        Row: {
+          color: string
+          content: string | null
+          created_at: string
+          created_by: string
+          household_id: string
+          id: string
+          kind: Database["public"]["Enums"]["note_kind"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string
+          content?: string | null
+          created_at?: string
+          created_by: string
+          household_id: string
+          id?: string
+          kind?: Database["public"]["Enums"]["note_kind"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          content?: string | null
+          created_at?: string
+          created_by?: string
+          household_id?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["note_kind"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payment_history: {
         Row: {
           amount: number | null
@@ -661,6 +738,7 @@ export type Database = {
       expense_permission: "none" | "view" | "edit"
       household_role: "admin" | "member" | "guest"
       meal_slot: "breakfast" | "lunch" | "snack" | "dinner"
+      note_kind: "list" | "note"
       payment_category: "rent" | "service" | "other"
       payment_recurrence:
         | "monthly"
@@ -800,6 +878,7 @@ export const Constants = {
       expense_permission: ["none", "view", "edit"],
       household_role: ["admin", "member", "guest"],
       meal_slot: ["breakfast", "lunch", "snack", "dinner"],
+      note_kind: ["list", "note"],
       payment_category: ["rent", "service", "other"],
       payment_recurrence: [
         "monthly",
