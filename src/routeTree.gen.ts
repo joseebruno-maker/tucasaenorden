@@ -17,6 +17,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRecetarioRouteImport } from './routes/_authenticated/recetario'
 import { Route as AuthenticatedPendientesRouteImport } from './routes/_authenticated/pendientes'
 import { Route as AuthenticatedPagosRouteImport } from './routes/_authenticated/pagos'
+import { Route as AuthenticatedNotasRouteImport } from './routes/_authenticated/notas'
 import { Route as AuthenticatedMenuRouteImport } from './routes/_authenticated/menu'
 import { Route as AuthenticatedMantenimientosRouteImport } from './routes/_authenticated/mantenimientos'
 import { Route as AuthenticatedHogarRouteImport } from './routes/_authenticated/hogar'
@@ -63,6 +64,11 @@ const AuthenticatedPendientesRoute = AuthenticatedPendientesRouteImport.update({
 const AuthenticatedPagosRoute = AuthenticatedPagosRouteImport.update({
   id: '/pagos',
   path: '/pagos',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedNotasRoute = AuthenticatedNotasRouteImport.update({
+  id: '/notas',
+  path: '/notas',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedMenuRoute = AuthenticatedMenuRouteImport.update({
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/hogar': typeof AuthenticatedHogarRoute
   '/mantenimientos': typeof AuthenticatedMantenimientosRoute
   '/menu': typeof AuthenticatedMenuRoute
+  '/notas': typeof AuthenticatedNotasRoute
   '/pagos': typeof AuthenticatedPagosRoute
   '/pendientes': typeof AuthenticatedPendientesRoute
   '/recetario': typeof AuthenticatedRecetarioRoute
@@ -138,6 +145,7 @@ export interface FileRoutesByTo {
   '/hogar': typeof AuthenticatedHogarRoute
   '/mantenimientos': typeof AuthenticatedMantenimientosRoute
   '/menu': typeof AuthenticatedMenuRoute
+  '/notas': typeof AuthenticatedNotasRoute
   '/pagos': typeof AuthenticatedPagosRoute
   '/pendientes': typeof AuthenticatedPendientesRoute
   '/recetario': typeof AuthenticatedRecetarioRoute
@@ -157,6 +165,7 @@ export interface FileRoutesById {
   '/_authenticated/hogar': typeof AuthenticatedHogarRoute
   '/_authenticated/mantenimientos': typeof AuthenticatedMantenimientosRoute
   '/_authenticated/menu': typeof AuthenticatedMenuRoute
+  '/_authenticated/notas': typeof AuthenticatedNotasRoute
   '/_authenticated/pagos': typeof AuthenticatedPagosRoute
   '/_authenticated/pendientes': typeof AuthenticatedPendientesRoute
   '/_authenticated/recetario': typeof AuthenticatedRecetarioRoute
@@ -176,6 +185,7 @@ export interface FileRouteTypes {
     | '/hogar'
     | '/mantenimientos'
     | '/menu'
+    | '/notas'
     | '/pagos'
     | '/pendientes'
     | '/recetario'
@@ -193,6 +203,7 @@ export interface FileRouteTypes {
     | '/hogar'
     | '/mantenimientos'
     | '/menu'
+    | '/notas'
     | '/pagos'
     | '/pendientes'
     | '/recetario'
@@ -211,6 +222,7 @@ export interface FileRouteTypes {
     | '/_authenticated/hogar'
     | '/_authenticated/mantenimientos'
     | '/_authenticated/menu'
+    | '/_authenticated/notas'
     | '/_authenticated/pagos'
     | '/_authenticated/pendientes'
     | '/_authenticated/recetario'
@@ -282,6 +294,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPagosRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/notas': {
+      id: '/_authenticated/notas'
+      path: '/notas'
+      fullPath: '/notas'
+      preLoaderRoute: typeof AuthenticatedNotasRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/menu': {
       id: '/_authenticated/menu'
       path: '/menu'
@@ -350,6 +369,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedHogarRoute: typeof AuthenticatedHogarRoute
   AuthenticatedMantenimientosRoute: typeof AuthenticatedMantenimientosRoute
   AuthenticatedMenuRoute: typeof AuthenticatedMenuRoute
+  AuthenticatedNotasRoute: typeof AuthenticatedNotasRoute
   AuthenticatedPagosRoute: typeof AuthenticatedPagosRoute
   AuthenticatedPendientesRoute: typeof AuthenticatedPendientesRoute
   AuthenticatedRecetarioRoute: typeof AuthenticatedRecetarioRoute
@@ -364,6 +384,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedHogarRoute: AuthenticatedHogarRoute,
   AuthenticatedMantenimientosRoute: AuthenticatedMantenimientosRoute,
   AuthenticatedMenuRoute: AuthenticatedMenuRoute,
+  AuthenticatedNotasRoute: AuthenticatedNotasRoute,
   AuthenticatedPagosRoute: AuthenticatedPagosRoute,
   AuthenticatedPendientesRoute: AuthenticatedPendientesRoute,
   AuthenticatedRecetarioRoute: AuthenticatedRecetarioRoute,
