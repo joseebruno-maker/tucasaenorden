@@ -27,6 +27,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     { to: "/menu", icon: UtensilsCrossed, label: "Menú semanal", show: canManageNonEconomic },
     { to: "/recetario", icon: ChefHat, label: "Recetario", show: true },
     { to: "/actividades", icon: Map, label: "Actividades", show: true },
+    { to: "/notas", icon: StickyNote, label: "Notas y listas", show: !isGuest },
     { to: "/gastos", icon: PiggyBank, label: "Gastos", show: true },
     { to: "/pagos", icon: Wallet, label: "Pagos", show: isAdmin },
     { to: "/hogar", icon: Users, label: "Hogar", show: true },
