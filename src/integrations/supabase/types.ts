@@ -169,6 +169,7 @@ export type Database = {
           description: string | null
           household_id: string
           id: string
+          recurring_id: string | null
           spent_at: string
         }
         Insert: {
@@ -180,6 +181,7 @@ export type Database = {
           description?: string | null
           household_id: string
           id?: string
+          recurring_id?: string | null
           spent_at?: string
         }
         Update: {
@@ -191,6 +193,7 @@ export type Database = {
           description?: string | null
           household_id?: string
           id?: string
+          recurring_id?: string | null
           spent_at?: string
         }
         Relationships: [
@@ -199,6 +202,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_recurring_id_fkey"
+            columns: ["recurring_id"]
+            isOneToOne: false
+            referencedRelation: "recurring_expenses"
             referencedColumns: ["id"]
           },
         ]
@@ -605,6 +615,63 @@ export type Database = {
           },
         ]
       }
+      recurring_expenses: {
+        Row: {
+          active: boolean
+          amount: number
+          category_id: string | null
+          created_at: string
+          created_by: string
+          currency: string
+          day_of_month: number
+          description: string | null
+          household_id: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          amount: number
+          category_id?: string | null
+          created_at?: string
+          created_by: string
+          currency?: string
+          day_of_month?: number
+          description?: string | null
+          household_id: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          amount?: number
+          category_id?: string | null
+          created_at?: string
+          created_by?: string
+          currency?: string
+          day_of_month?: number
+          description?: string | null
+          household_id?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_expenses_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_expenses_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shopping_items: {
         Row: {
           bought: boolean
@@ -702,6 +769,10 @@ export type Database = {
       can_view_expenses: {
         Args: { _household_id: string; _user_id: string }
         Returns: boolean
+      }
+      ensure_recurring_expenses: {
+        Args: { _household_id: string; _ym: string }
+        Returns: number
       }
       get_expense_permission: {
         Args: { _household_id: string; _user_id: string }
