@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.ensure_recurring_expenses(uuid, text) FROM PUBLIC, anon;
