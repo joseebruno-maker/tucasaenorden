@@ -58,6 +58,47 @@ export type Database = {
           },
         ]
       }
+      audit_log: {
+        Row: {
+          action: string
+          changes: Json
+          created_at: string
+          entity_id: string
+          entity_type: string
+          household_id: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          changes?: Json
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          household_id: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          changes?: Json
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          household_id?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_log_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           created_at: string
