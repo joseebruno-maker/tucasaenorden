@@ -27,7 +27,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import {
   Wallet, Plus, Pencil, Trash2, Lock, ChevronLeft, ChevronRight, Tag, Users,
-  Search, Download, Repeat, AlertTriangle, BarChart3,
+  Search, Download, Repeat, AlertTriangle, BarChart3, History,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -100,6 +100,9 @@ function GastosPage() {
   const [editingExp, setEditingExp] = useState<Expense | null | undefined>(undefined);
   const [editingCat, setEditingCat] = useState<Category | null | undefined>(undefined);
   const [editingRec, setEditingRec] = useState<Recurring | null | undefined>(undefined);
+  const [historyTarget, setHistoryTarget] = useState<
+    { type: "expense" | "category"; id: string; label: string } | null
+  >(null);
 
   // filters
   const [search, setSearch] = useState("");
@@ -606,12 +609,21 @@ function GastosPage() {
                       {cat?.name ?? "Sin categoría"} · {format(new Date(e.spent_at + "T00:00"), "dd/MM/yyyy")} · {memberName(e.created_by)}
                     </div>
                   </div>
-                  {canEdit && (
-                    <div className="flex gap-1 shrink-0">
-                      <button onClick={() => setEditingExp(e)} className="text-muted-foreground hover:text-foreground"><Pencil className="h-4 w-4" /></button>
-                      <button onClick={() => { if (confirm("¿Borrar gasto?")) delExp.mutate(e.id); }} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
-                    </div>
-                  )}
+                  <div className="flex gap-1 shrink-0">
+                    <button
+                      onClick={() => setHistoryTarget({ type: "expense", id: e.id, label: e.description || cat?.name || "Gasto" })}
+                      className="text-muted-foreground hover:text-foreground"
+                      title="Historial"
+                    >
+                      <History className="h-4 w-4" />
+                    </button>
+                    {canEdit && (
+                      <>
+                        <button onClick={() => setEditingExp(e)} className="text-muted-foreground hover:text-foreground"><Pencil className="h-4 w-4" /></button>
+                        <button onClick={() => { if (confirm("¿Borrar gasto?")) delExp.mutate(e.id); }} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
+                      </>
+                    )}
+                  </div>
                 </div>
               );
             })
@@ -674,12 +686,21 @@ function GastosPage() {
                     {c.monthly_budget ? `Presupuesto: ${fmt(Number(c.monthly_budget))}` : "Sin presupuesto"}
                   </div>
                 </div>
-                {canEdit && (
-                  <div className="flex gap-1 shrink-0">
-                    <button onClick={() => setEditingCat(c)} className="text-muted-foreground hover:text-foreground"><Pencil className="h-4 w-4" /></button>
-                    <button onClick={() => { if (confirm(`¿Borrar "${c.name}"? Los gastos quedarán sin categoría.`)) delCat.mutate(c.id); }} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
-                  </div>
-                )}
+                <div className="flex gap-1 shrink-0">
+                  <button
+                    onClick={() => setHistoryTarget({ type: "category", id: c.id, label: c.name })}
+                    className="text-muted-foreground hover:text-foreground"
+                    title="Historial"
+                  >
+                    <History className="h-4 w-4" />
+                  </button>
+                  {canEdit && (
+                    <>
+                      <button onClick={() => setEditingCat(c)} className="text-muted-foreground hover:text-foreground"><Pencil className="h-4 w-4" /></button>
+                      <button onClick={() => { if (confirm(`¿Borrar "${c.name}"? Los gastos quedarán sin categoría.`)) delCat.mutate(c.id); }} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
+                    </>
+                  )}
+                </div>
               </div>
             ))
           )}
@@ -744,6 +765,128 @@ function GastosPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* History dialog */}
+      <Dialog open={!!historyTarget} onOpenChange={(v) => !v && setHistoryTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Historial · {historyTarget?.label}</DialogTitle>
+          </DialogHeader>
+          {historyTarget && (
+            <HistoryView
+              entityType={historyTarget.type}
+              entityId={historyTarget.id}
+              categories={categories}
+              memberName={memberName}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+interface AuditEntry {
+  id: string;
+  action: "insert" | "update" | "delete";
+  changes: Record<string, unknown>;
+  user_id: string | null;
+  created_at: string;
+}
+
+const FIELD_LABELS: Record<string, string> = {
+  amount: "Monto",
+  currency: "Moneda",
+  description: "Descripción",
+  spent_at: "Fecha",
+  category_id: "Categoría",
+  name: "Nombre",
+  color: "Color",
+  monthly_budget: "Presupuesto",
+};
+
+function HistoryView({
+  entityType, entityId, categories, memberName,
+}: {
+  entityType: "expense" | "category";
+  entityId: string;
+  categories: Category[];
+  memberName: (uid: string) => string;
+}) {
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["audit-log", entityType, entityId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("audit_log")
+        .select("id,action,changes,user_id,created_at")
+        .eq("entity_type", entityType)
+        .eq("entity_id", entityId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as AuditEntry[];
+    },
+  });
+
+  const fmtVal = (field: string, v: unknown): string => {
+    if (v === null || v === undefined || v === "") return "—";
+    if (field === "category_id") {
+      return categories.find((c) => c.id === v)?.name ?? "Sin categoría";
+    }
+    if (field === "amount" || field === "monthly_budget") {
+      const n = Number(v);
+      return isFinite(n) ? fmt(n) : String(v);
+    }
+    if (field === "spent_at" && typeof v === "string") {
+      return format(new Date(v + "T00:00"), "dd/MM/yyyy");
+    }
+    return String(v);
+  };
+
+  const actionLabel = (a: AuditEntry["action"]) =>
+    a === "insert" ? "Creado" : a === "update" ? "Editado" : "Eliminado";
+
+  if (isLoading) return <p className="text-sm text-muted-foreground">Cargando…</p>;
+  if (data.length === 0) return <p className="text-sm text-muted-foreground">Sin movimientos registrados.</p>;
+
+  return (
+    <div className="space-y-3 max-h-[60vh] overflow-y-auto">
+      {data.map((entry) => (
+        <div key={entry.id} className="rounded-lg border bg-card p-3 text-sm">
+          <div className="flex items-baseline justify-between gap-2 mb-1">
+            <span className="font-medium">{actionLabel(entry.action)}</span>
+            <span className="text-xs text-muted-foreground">
+              {format(new Date(entry.created_at), "dd/MM/yyyy HH:mm")}
+            </span>
+          </div>
+          <div className="text-xs text-muted-foreground mb-2">
+            por {entry.user_id ? memberName(entry.user_id) : "—"}
+          </div>
+          {entry.action === "update" ? (
+            <ul className="space-y-1">
+              {Object.entries(entry.changes).map(([field, val]) => {
+                const v = val as { old?: unknown; new?: unknown };
+                return (
+                  <li key={field} className="text-xs">
+                    <span className="font-medium">{FIELD_LABELS[field] ?? field}:</span>{" "}
+                    <span className="line-through text-muted-foreground">{fmtVal(field, v.old)}</span>
+                    {" → "}
+                    <span className="text-foreground">{fmtVal(field, v.new)}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <ul className="space-y-0.5">
+              {Object.entries(entry.changes).map(([field, val]) => (
+                <li key={field} className="text-xs">
+                  <span className="font-medium">{FIELD_LABELS[field] ?? field}:</span>{" "}
+                  <span>{fmtVal(field, val)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ))}
     </div>
   );
 }
