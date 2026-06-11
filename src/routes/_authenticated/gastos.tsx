@@ -27,7 +27,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import {
   Wallet, Plus, Pencil, Trash2, Lock, ChevronLeft, ChevronRight, Tag, Users,
-  Search, Download, Repeat, AlertTriangle, BarChart3,
+  Search, Download, Repeat, AlertTriangle, BarChart3, History,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
