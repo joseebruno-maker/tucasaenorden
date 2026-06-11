@@ -100,6 +100,9 @@ function GastosPage() {
   const [editingExp, setEditingExp] = useState<Expense | null | undefined>(undefined);
   const [editingCat, setEditingCat] = useState<Category | null | undefined>(undefined);
   const [editingRec, setEditingRec] = useState<Recurring | null | undefined>(undefined);
+  const [historyTarget, setHistoryTarget] = useState<
+    { type: "expense" | "category"; id: string; label: string } | null
+  >(null);
 
   // filters
   const [search, setSearch] = useState("");
