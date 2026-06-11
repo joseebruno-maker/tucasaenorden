@@ -709,6 +709,19 @@ function GastosPage() {
           )}
         </TabsContent>
 
+        <TabsContent value="historial">
+          <HistoryPanel
+            householdId={household.id}
+            monthStart={bounds.start}
+            monthEnd={bounds.end}
+            monthLabel={bounds.label}
+            categories={categories}
+            memberName={memberName}
+          />
+        </TabsContent>
+
+
+
         {isAdmin && (
           <TabsContent value="permisos">
             <PermissionsPanel householdId={household.id} myUserId={user!.id} />
