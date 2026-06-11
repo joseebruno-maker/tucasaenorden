@@ -405,6 +405,9 @@ function GastosPage() {
             <Repeat className="h-3.5 w-3.5 mr-1" />Recurrentes
           </TabsTrigger>
           <TabsTrigger value="categorias" className="flex-1">Categorías</TabsTrigger>
+          <TabsTrigger value="historial" className="flex-1">
+            <History className="h-3.5 w-3.5 mr-1" />Historial
+          </TabsTrigger>
           {isAdmin && (
             <TabsTrigger value="permisos" className="flex-1">
               <Users className="h-3.5 w-3.5 mr-1" />Permisos
