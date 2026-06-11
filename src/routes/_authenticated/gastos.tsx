@@ -686,12 +686,21 @@ function GastosPage() {
                     {c.monthly_budget ? `Presupuesto: ${fmt(Number(c.monthly_budget))}` : "Sin presupuesto"}
                   </div>
                 </div>
-                {canEdit && (
-                  <div className="flex gap-1 shrink-0">
-                    <button onClick={() => setEditingCat(c)} className="text-muted-foreground hover:text-foreground"><Pencil className="h-4 w-4" /></button>
-                    <button onClick={() => { if (confirm(`¿Borrar "${c.name}"? Los gastos quedarán sin categoría.`)) delCat.mutate(c.id); }} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
-                  </div>
-                )}
+                <div className="flex gap-1 shrink-0">
+                  <button
+                    onClick={() => setHistoryTarget({ type: "category", id: c.id, label: c.name })}
+                    className="text-muted-foreground hover:text-foreground"
+                    title="Historial"
+                  >
+                    <History className="h-4 w-4" />
+                  </button>
+                  {canEdit && (
+                    <>
+                      <button onClick={() => setEditingCat(c)} className="text-muted-foreground hover:text-foreground"><Pencil className="h-4 w-4" /></button>
+                      <button onClick={() => { if (confirm(`¿Borrar "${c.name}"? Los gastos quedarán sin categoría.`)) delCat.mutate(c.id); }} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
+                    </>
+                  )}
+                </div>
               </div>
             ))
           )}
