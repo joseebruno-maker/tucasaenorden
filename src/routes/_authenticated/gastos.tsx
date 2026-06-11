@@ -405,6 +405,9 @@ function GastosPage() {
             <Repeat className="h-3.5 w-3.5 mr-1" />Recurrentes
           </TabsTrigger>
           <TabsTrigger value="categorias" className="flex-1">Categorías</TabsTrigger>
+          <TabsTrigger value="historial" className="flex-1">
+            <History className="h-3.5 w-3.5 mr-1" />Historial
+          </TabsTrigger>
           {isAdmin && (
             <TabsTrigger value="permisos" className="flex-1">
               <Users className="h-3.5 w-3.5 mr-1" />Permisos
@@ -706,6 +709,19 @@ function GastosPage() {
           )}
         </TabsContent>
 
+        <TabsContent value="historial">
+          <HistoryPanel
+            householdId={household.id}
+            monthStart={bounds.start}
+            monthEnd={bounds.end}
+            monthLabel={bounds.label}
+            categories={categories}
+            memberName={memberName}
+          />
+        </TabsContent>
+
+
+
         {isAdmin && (
           <TabsContent value="permisos">
             <PermissionsPanel householdId={household.id} myUserId={user!.id} />
@@ -887,6 +903,158 @@ function HistoryView({
           )}
         </div>
       ))}
+    </div>
+  );
+}
+
+function HistoryPanel({
+  householdId, monthStart, monthEnd, monthLabel, categories, memberName,
+}: {
+  householdId: string;
+  monthStart: string;
+  monthEnd: string;
+  monthLabel: string;
+  categories: Category[];
+  memberName: (uid: string) => string;
+}) {
+  const [entityFilter, setEntityFilter] = useState<"all" | "expense" | "category">("all");
+  const [actionFilter, setActionFilter] = useState<"all" | "insert" | "update" | "delete">("all");
+
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["audit-log-period", householdId, monthStart, monthEnd],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("audit_log")
+        .select("id,entity_type,entity_id,action,changes,user_id,created_at")
+        .eq("household_id", householdId)
+        .gte("created_at", `${monthStart}T00:00:00`)
+        .lte("created_at", `${monthEnd}T23:59:59`)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as Array<{
+        id: string;
+        entity_type: "expense" | "category";
+        entity_id: string;
+        action: "insert" | "update" | "delete";
+        changes: Record<string, unknown>;
+        user_id: string | null;
+        created_at: string;
+      }>;
+    },
+  });
+
+  const filtered = data.filter((e) => {
+    if (entityFilter !== "all" && e.entity_type !== entityFilter) return false;
+    if (actionFilter !== "all" && e.action !== actionFilter) return false;
+    return true;
+  });
+
+  const catName = (id: string) => categories.find((c) => c.id === id)?.name ?? "Sin categoría";
+  const fmtVal = (field: string, v: unknown): string => {
+    if (v === null || v === undefined || v === "") return "";
+    if (field === "category_id") return catName(String(v));
+    if (field === "amount" || field === "monthly_budget") {
+      const n = Number(v);
+      return isFinite(n) ? String(n) : String(v);
+    }
+    return String(v);
+  };
+  const entityTypeLabel = (t: string) => (t === "expense" ? "Gasto" : "Categoría");
+  const actionLabel = (a: string) =>
+    a === "insert" ? "Creado" : a === "update" ? "Editado" : "Eliminado";
+
+  const summarize = (e: typeof filtered[number]) => {
+    if (e.action === "update") {
+      return Object.entries(e.changes)
+        .map(([f, val]) => {
+          const v = val as { old?: unknown; new?: unknown };
+          return `${FIELD_LABELS[f] ?? f}: ${fmtVal(f, v.old) || "—"} → ${fmtVal(f, v.new) || "—"}`;
+        })
+        .join(" | ");
+    }
+    return Object.entries(e.changes)
+      .map(([f, val]) => `${FIELD_LABELS[f] ?? f}: ${fmtVal(f, val) || "—"}`)
+      .join(" | ");
+  };
+
+  const exportCsv = () => {
+    const headers = ["Fecha", "Hora", "Tipo", "Acción", "Usuario", "Detalle"];
+    const rows = filtered.map((e) => {
+      const d = new Date(e.created_at);
+      return [
+        format(d, "yyyy-MM-dd"),
+        format(d, "HH:mm"),
+        entityTypeLabel(e.entity_type),
+        actionLabel(e.action),
+        e.user_id ? memberName(e.user_id) : "",
+        summarize(e),
+      ];
+    });
+    const escape = (s: string) => `"${s.replace(/"/g, '""')}"`;
+    const csv = [headers, ...rows].map((r) => r.map((c) => escape(String(c))).join(",")).join("\n");
+    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `historial-${monthStart.slice(0, 7)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="rounded-lg border bg-card p-2 space-y-2">
+        <div className="grid grid-cols-2 gap-2">
+          <Select value={entityFilter} onValueChange={(v) => setEntityFilter(v as typeof entityFilter)}>
+            <SelectTrigger><SelectValue placeholder="Tipo" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los tipos</SelectItem>
+              <SelectItem value="expense">Gastos</SelectItem>
+              <SelectItem value="category">Categorías/Presupuestos</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={actionFilter} onValueChange={(v) => setActionFilter(v as typeof actionFilter)}>
+            <SelectTrigger><SelectValue placeholder="Acción" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las acciones</SelectItem>
+              <SelectItem value="insert">Creados</SelectItem>
+              <SelectItem value="update">Editados</SelectItem>
+              <SelectItem value="delete">Eliminados</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-muted-foreground capitalize">
+            {monthLabel} · {filtered.length} movimientos
+          </span>
+          <Button size="sm" variant="outline" onClick={exportCsv} disabled={filtered.length === 0}>
+            <Download className="h-3.5 w-3.5 mr-1" /> CSV
+          </Button>
+        </div>
+      </div>
+
+      {isLoading ? (
+        <p className="text-sm text-muted-foreground text-center py-6">Cargando…</p>
+      ) : filtered.length === 0 ? (
+        <p className="text-sm text-muted-foreground text-center py-6">Sin movimientos en este período.</p>
+      ) : (
+        filtered.map((e) => (
+          <div key={e.id} className="rounded-lg border bg-card p-3 text-sm">
+            <div className="flex items-baseline justify-between gap-2 mb-1">
+              <span className="font-medium">
+                {entityTypeLabel(e.entity_type)} · {actionLabel(e.action)}
+              </span>
+              <span className="text-xs text-muted-foreground shrink-0">
+                {format(new Date(e.created_at), "dd/MM HH:mm")}
+              </span>
+            </div>
+            <div className="text-xs text-muted-foreground mb-1">
+              por {e.user_id ? memberName(e.user_id) : "—"}
+            </div>
+            <div className="text-xs break-words">{summarize(e) || "—"}</div>
+          </div>
+        ))
+      )}
     </div>
   );
 }
