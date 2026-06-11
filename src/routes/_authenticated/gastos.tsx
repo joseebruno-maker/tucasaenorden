@@ -609,12 +609,21 @@ function GastosPage() {
                       {cat?.name ?? "Sin categoría"} · {format(new Date(e.spent_at + "T00:00"), "dd/MM/yyyy")} · {memberName(e.created_by)}
                     </div>
                   </div>
-                  {canEdit && (
-                    <div className="flex gap-1 shrink-0">
-                      <button onClick={() => setEditingExp(e)} className="text-muted-foreground hover:text-foreground"><Pencil className="h-4 w-4" /></button>
-                      <button onClick={() => { if (confirm("¿Borrar gasto?")) delExp.mutate(e.id); }} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
-                    </div>
-                  )}
+                  <div className="flex gap-1 shrink-0">
+                    <button
+                      onClick={() => setHistoryTarget({ type: "expense", id: e.id, label: e.description || cat?.name || "Gasto" })}
+                      className="text-muted-foreground hover:text-foreground"
+                      title="Historial"
+                    >
+                      <History className="h-4 w-4" />
+                    </button>
+                    {canEdit && (
+                      <>
+                        <button onClick={() => setEditingExp(e)} className="text-muted-foreground hover:text-foreground"><Pencil className="h-4 w-4" /></button>
+                        <button onClick={() => { if (confirm("¿Borrar gasto?")) delExp.mutate(e.id); }} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
+                      </>
+                    )}
+                  </div>
                 </div>
               );
             })
