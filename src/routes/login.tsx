@@ -50,9 +50,14 @@ function LoginPage() {
               {loading ? "Ingresando…" : "Ingresar"}
             </Button>
           </form>
-          <p className="mt-4 text-center text-sm text-muted-foreground">
-            ¿No tenés cuenta? <Link to="/signup" className="text-primary underline">Crear una</Link>
-          </p>
+          <div className="mt-4 space-y-1 text-center text-sm text-muted-foreground">
+            <p>
+              <Link to="/forgot-password" className="text-primary underline">¿Olvidaste tu contraseña?</Link>
+            </p>
+            <p>
+              ¿No tenés cuenta? <Link to="/signup" className="text-primary underline">Crear una</Link>
+            </p>
+          </div>
         </Card>
       </div>
     </div>
