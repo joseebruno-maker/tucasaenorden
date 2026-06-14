@@ -88,13 +88,15 @@ function HogarPage() {
       .channel(`hogar-${household.id}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "household_members", filter: `household_id=eq.${household.id}` }, () => {
         qc.invalidateQueries({ queryKey: ["members-full", household.id] });
+        qc.invalidateQueries({ queryKey: ["household", user?.id] });
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "household_roles", filter: `household_id=eq.${household.id}` }, () => {
         qc.invalidateQueries({ queryKey: ["members-full", household.id] });
+        qc.invalidateQueries({ queryKey: ["role", household.id] });
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [household?.id, qc]);
+  }, [household?.id, qc, user?.id]);
 
   const updateRole = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: HouseholdRole }) => {
