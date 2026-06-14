@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useHousehold } from "@/lib/household";
 import { useAuth } from "@/lib/auth";
@@ -7,7 +8,7 @@ import { useRole, type HouseholdRole } from "@/lib/role";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Copy, LogOut, Shield, User as UserIcon, UserMinus } from "lucide-react";
+import { Copy, LogOut, RefreshCw, Shield, User as UserIcon, UserMinus } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/hogar")({ component: HogarPage });
