@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useHousehold } from "@/lib/household";
 import { useAuth } from "@/lib/auth";
@@ -7,7 +8,7 @@ import { useRole, type HouseholdRole } from "@/lib/role";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Copy, LogOut, Shield, User as UserIcon, UserMinus } from "lucide-react";
+import { Copy, LogOut, RefreshCw, Shield, User as UserIcon, UserMinus } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/hogar")({ component: HogarPage });
@@ -38,9 +39,11 @@ function HogarPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
 
-  const { data: members = [] } = useQuery({
+  const { data: members = [], refetch: refetchMembers, isFetching } = useQuery({
     queryKey: ["members-full", household?.id],
     enabled: !!household,
+    refetchOnWindowFocus: true,
+    refetchOnMount: "always",
     queryFn: async () => {
       const [{ data: mems, error: e1 }, { data: roles, error: e2 }] = await Promise.all([
         supabase
@@ -61,6 +64,20 @@ function HogarPage() {
       })) as Member[];
     },
   });
+
+  useEffect(() => {
+    if (!household?.id) return;
+    const channel = supabase
+      .channel(`hogar-${household.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "household_members", filter: `household_id=eq.${household.id}` }, () => {
+        qc.invalidateQueries({ queryKey: ["members-full", household.id] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "household_roles", filter: `household_id=eq.${household.id}` }, () => {
+        qc.invalidateQueries({ queryKey: ["members-full", household.id] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [household?.id, qc]);
 
   const updateRole = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: HouseholdRole }) => {
@@ -122,7 +139,12 @@ function HogarPage() {
       </Card>
 
       <Card className="p-5">
-        <h2 className="font-semibold">Integrantes ({members.length})</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="font-semibold">Integrantes ({members.length})</h2>
+          <Button variant="ghost" size="sm" onClick={() => refetchMembers()} disabled={isFetching}>
+            <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+          </Button>
+        </div>
         <ul className="mt-3 space-y-2">
           {members.map((m) => {
             const isSelf = m.user_id === user?.id;
