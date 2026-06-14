@@ -48,7 +48,7 @@ function HogarPage() {
       const [{ data: mems, error: e1 }, { data: roles, error: e2 }] = await Promise.all([
         supabase
           .from("household_members")
-          .select("user_id, role, profile:profiles(display_name, avatar_color)")
+          .select("user_id, role")
           .eq("household_id", household!.id),
         supabase
           .from("household_roles")
@@ -57,9 +57,26 @@ function HogarPage() {
       ]);
       if (e1) throw e1;
       if (e2) throw e2;
+
+      const userIds = [...new Set((mems ?? []).map((m) => m.user_id))];
+      const { data: profiles, error: e3 } = userIds.length
+        ? await supabase
+            .from("profiles")
+            .select("id, display_name, avatar_color")
+            .in("id", userIds)
+        : { data: [], error: null };
+      if (e3) throw e3;
+
       const roleMap = new Map((roles ?? []).map((r) => [r.user_id, r.role as HouseholdRole]));
-      return (mems as unknown as Omit<Member, "household_role">[]).map((m) => ({
-        ...m,
+      const profileMap = new Map((profiles ?? []).map((p) => [
+        p.id,
+        { display_name: p.display_name, avatar_color: p.avatar_color },
+      ]));
+
+      return (mems ?? []).map((m) => ({
+        user_id: m.user_id,
+        role: m.role,
+        profile: profileMap.get(m.user_id) ?? null,
         household_role: roleMap.get(m.user_id) ?? null,
       })) as Member[];
     },
