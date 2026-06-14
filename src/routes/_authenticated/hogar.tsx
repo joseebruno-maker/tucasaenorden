@@ -139,7 +139,12 @@ function HogarPage() {
       </Card>
 
       <Card className="p-5">
-        <h2 className="font-semibold">Integrantes ({members.length})</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="font-semibold">Integrantes ({members.length})</h2>
+          <Button variant="ghost" size="sm" onClick={() => refetchMembers()} disabled={isFetching}>
+            <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+          </Button>
+        </div>
         <ul className="mt-3 space-y-2">
           {members.map((m) => {
             const isSelf = m.user_id === user?.id;
