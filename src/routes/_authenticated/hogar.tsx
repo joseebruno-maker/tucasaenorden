@@ -39,9 +39,11 @@ function HogarPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
 
-  const { data: members = [] } = useQuery({
+  const { data: members = [], refetch: refetchMembers, isFetching } = useQuery({
     queryKey: ["members-full", household?.id],
     enabled: !!household,
+    refetchOnWindowFocus: true,
+    refetchOnMount: "always",
     queryFn: async () => {
       const [{ data: mems, error: e1 }, { data: roles, error: e2 }] = await Promise.all([
         supabase
@@ -62,6 +64,20 @@ function HogarPage() {
       })) as Member[];
     },
   });
+
+  useEffect(() => {
+    if (!household?.id) return;
+    const channel = supabase
+      .channel(`hogar-${household.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "household_members", filter: `household_id=eq.${household.id}` }, () => {
+        qc.invalidateQueries({ queryKey: ["members-full", household.id] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "household_roles", filter: `household_id=eq.${household.id}` }, () => {
+        qc.invalidateQueries({ queryKey: ["members-full", household.id] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [household?.id, qc]);
 
   const updateRole = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: HouseholdRole }) => {
