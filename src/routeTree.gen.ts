@@ -17,6 +17,7 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRecetarioRouteImport } from './routes/_authenticated/recetario'
+import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as AuthenticatedPendientesRouteImport } from './routes/_authenticated/pendientes'
 import { Route as AuthenticatedPagosRouteImport } from './routes/_authenticated/pagos'
 import { Route as AuthenticatedNotasRouteImport } from './routes/_authenticated/notas'
@@ -66,6 +67,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthenticatedRecetarioRoute = AuthenticatedRecetarioRouteImport.update({
   id: '/recetario',
   path: '/recetario',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedPendientesRoute = AuthenticatedPendientesRouteImport.update({
@@ -144,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/notas': typeof AuthenticatedNotasRoute
   '/pagos': typeof AuthenticatedPagosRoute
   '/pendientes': typeof AuthenticatedPendientesRoute
+  '/perfil': typeof AuthenticatedPerfilRoute
   '/recetario': typeof AuthenticatedRecetarioRoute
 }
 export interface FileRoutesByTo {
@@ -164,6 +171,7 @@ export interface FileRoutesByTo {
   '/notas': typeof AuthenticatedNotasRoute
   '/pagos': typeof AuthenticatedPagosRoute
   '/pendientes': typeof AuthenticatedPendientesRoute
+  '/perfil': typeof AuthenticatedPerfilRoute
   '/recetario': typeof AuthenticatedRecetarioRoute
 }
 export interface FileRoutesById {
@@ -186,6 +194,7 @@ export interface FileRoutesById {
   '/_authenticated/notas': typeof AuthenticatedNotasRoute
   '/_authenticated/pagos': typeof AuthenticatedPagosRoute
   '/_authenticated/pendientes': typeof AuthenticatedPendientesRoute
+  '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/recetario': typeof AuthenticatedRecetarioRoute
 }
 export interface FileRouteTypes {
@@ -208,6 +217,7 @@ export interface FileRouteTypes {
     | '/notas'
     | '/pagos'
     | '/pendientes'
+    | '/perfil'
     | '/recetario'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -228,6 +238,7 @@ export interface FileRouteTypes {
     | '/notas'
     | '/pagos'
     | '/pendientes'
+    | '/perfil'
     | '/recetario'
   id:
     | '__root__'
@@ -249,6 +260,7 @@ export interface FileRouteTypes {
     | '/_authenticated/notas'
     | '/_authenticated/pagos'
     | '/_authenticated/pendientes'
+    | '/_authenticated/perfil'
     | '/_authenticated/recetario'
   fileRoutesById: FileRoutesById
 }
@@ -318,6 +330,13 @@ declare module '@tanstack/react-router' {
       path: '/recetario'
       fullPath: '/recetario'
       preLoaderRoute: typeof AuthenticatedRecetarioRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/perfil': {
+      id: '/_authenticated/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof AuthenticatedPerfilRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/pendientes': {
@@ -412,6 +431,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedNotasRoute: typeof AuthenticatedNotasRoute
   AuthenticatedPagosRoute: typeof AuthenticatedPagosRoute
   AuthenticatedPendientesRoute: typeof AuthenticatedPendientesRoute
+  AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedRecetarioRoute: typeof AuthenticatedRecetarioRoute
 }
 
@@ -427,6 +447,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedNotasRoute: AuthenticatedNotasRoute,
   AuthenticatedPagosRoute: AuthenticatedPagosRoute,
   AuthenticatedPendientesRoute: AuthenticatedPendientesRoute,
+  AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedRecetarioRoute: AuthenticatedRecetarioRoute,
 }
 
