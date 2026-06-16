@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { Home, ShoppingCart, ListChecks, Calendar, Users, LogOut, Menu, Wrench, Wallet, UtensilsCrossed, ChefHat, Map, PiggyBank, StickyNote } from "lucide-react";
+import { Home, ShoppingCart, ListChecks, Calendar, Users, LogOut, Menu, Wrench, Wallet, UtensilsCrossed, ChefHat, Map, PiggyBank, StickyNote, UserCog } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -31,6 +31,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     { to: "/gastos", icon: PiggyBank, label: "Gastos", show: true },
     { to: "/pagos", icon: Wallet, label: "Pagos", show: isAdmin },
     { to: "/hogar", icon: Users, label: "Hogar", show: true },
+    { to: "/perfil", icon: UserCog, label: "Mi perfil", show: true },
   ] as const;
 
   const NavLinks = () => (

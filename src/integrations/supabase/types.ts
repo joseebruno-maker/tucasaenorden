@@ -499,6 +499,65 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          channel_email: boolean
+          channel_push: boolean
+          created_at: string
+          frequency: Database["public"]["Enums"]["notification_frequency"]
+          household_id: string
+          id: string
+          include_events: boolean
+          include_shopping: boolean
+          include_tasks: boolean
+          send_hour: number
+          timezone: string
+          updated_at: string
+          user_id: string
+          weekday: number
+        }
+        Insert: {
+          channel_email?: boolean
+          channel_push?: boolean
+          created_at?: string
+          frequency?: Database["public"]["Enums"]["notification_frequency"]
+          household_id: string
+          id?: string
+          include_events?: boolean
+          include_shopping?: boolean
+          include_tasks?: boolean
+          send_hour?: number
+          timezone?: string
+          updated_at?: string
+          user_id: string
+          weekday?: number
+        }
+        Update: {
+          channel_email?: boolean
+          channel_push?: boolean
+          created_at?: string
+          frequency?: Database["public"]["Enums"]["notification_frequency"]
+          household_id?: string
+          id?: string
+          include_events?: boolean
+          include_shopping?: boolean
+          include_tasks?: boolean
+          send_hour?: number
+          timezone?: string
+          updated_at?: string
+          user_id?: string
+          weekday?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_history: {
         Row: {
           amount: number | null
@@ -754,6 +813,44 @@ export type Database = {
           },
         ]
       }
+      summary_send_log: {
+        Row: {
+          channel: string
+          frequency: Database["public"]["Enums"]["notification_frequency"]
+          household_id: string
+          id: string
+          local_date: string
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          channel: string
+          frequency: Database["public"]["Enums"]["notification_frequency"]
+          household_id: string
+          id?: string
+          local_date: string
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          frequency?: Database["public"]["Enums"]["notification_frequency"]
+          household_id?: string
+          id?: string
+          local_date?: string
+          sent_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "summary_send_log_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           assigned_to: string | null
@@ -851,6 +948,7 @@ export type Database = {
       household_role: "admin" | "member" | "guest"
       meal_slot: "breakfast" | "lunch" | "snack" | "dinner"
       note_kind: "list" | "note"
+      notification_frequency: "off" | "daily" | "weekly"
       payment_category: "rent" | "service" | "other"
       payment_recurrence:
         | "monthly"
@@ -991,6 +1089,7 @@ export const Constants = {
       household_role: ["admin", "member", "guest"],
       meal_slot: ["breakfast", "lunch", "snack", "dinner"],
       note_kind: ["list", "note"],
+      notification_frequency: ["off", "daily", "weekly"],
       payment_category: ["rent", "service", "other"],
       payment_recurrence: [
         "monthly",
