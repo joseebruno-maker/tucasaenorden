@@ -1,72 +1,75 @@
 ## Resumen
 
-App web para administrar el hogar de forma colaborativa. Cada integrante inicia sesión con su cuenta y comparte un mismo "hogar". Arrancamos simple con **lista de compras, pendientes y calendario/recordatorios**, dejando preparada la base para sumar luego mantenimientos y pagos.
+Conectar la app con Google Calendar (sincronización bidireccional por integrante) y enviar resúmenes configurables (diarios/semanales) por email y push del navegador con pendientes, eventos y compras.
 
-## Módulos en esta primera entrega
+Por el alcance, lo dividimos en **3 entregas** para que veas progreso rápido y podamos ajustar entre cada una.
 
-1. **Autenticación**
-   - Login con email/contraseña (autoconfirmado, sin verificación por email para acelerar pruebas).
-   - Cada usuario crea o se une a un "hogar" mediante un código de invitación.
+---
 
-2. **Hogar e integrantes**
-   - Un hogar agrupa a varios usuarios.
-   - Pantalla de integrantes con sus nombres y avatar (iniciales).
-   - Código para invitar nuevos miembros.
+## Entrega 1 — Preferencias de notificación + Resumen por email
 
-3. **Lista de compras compartida**
-   - Agregar ítem (nombre, cantidad, categoría opcional).
-   - Marcar como comprado / borrar.
-   - Vista agrupada por categoría, contador de pendientes.
+**Lo que vas a poder hacer al terminar:** cada integrante entra a su perfil y elige si quiere recibir un resumen diario o semanal por email, a qué hora, y qué incluir (pendientes / eventos / compras). El sistema lo envía automáticamente.
 
-4. **Pendientes (tareas)**
-   - Crear tarea con título, descripción, fecha límite y asignar a un integrante (o "todos").
-   - Estados: pendiente / hecho.
-   - Filtros: míos, de otros, todos, vencidos.
+### Cambios
 
-5. **Calendario y recordatorios**
-   - Vista mensual con eventos del hogar (cumpleaños, citas, recordatorios).
-   - Crear evento con fecha, hora, descripción y asignados.
-   - Centro de notificaciones dentro de la app: badge con próximos vencimientos (tareas + eventos del día/semana).
+1. **Tabla `notification_preferences`** (una por usuario+hogar):
+   - `frequency`: `off` | `daily` | `weekly`
+   - `send_hour` (0–23, hora local), `weekday` (0–6, solo si semanal)
+   - `timezone` (string IANA, ej. `America/Argentina/Buenos_Aires`)
+   - `include_tasks`, `include_events`, `include_shopping` (booleanos)
+   - `channel_email`, `channel_push` (booleanos)
 
-6. **Dashboard (home)**
-   - Resumen: mis pendientes de hoy, próximos eventos, ítems urgentes de compras.
+2. **Pantalla `/perfil` (o sección en `/hogar`)** con un formulario para editar lo de arriba.
 
-## Estructura de rutas
+3. **Infraestructura de email Lovable** (ya tenés dominio? lo verifico; si no, te paso el botón para configurarlo). Plantilla React Email con: saludo, pendientes próximas/vencidas, eventos próximos, compras pendientes.
 
-```text
-/                    → landing / redirige a /dashboard si hay sesión
-/login               → email + contraseña
-/signup              → registro + crear hogar o ingresar código
-/_authenticated
-  /dashboard         → resumen del hogar
-  /compras           → lista de compras
-  /pendientes        → tareas
-  /calendario        → vista mensual + lista
-  /hogar             → integrantes, código de invitación, perfil
-```
+4. **Cron pg_cron cada 15 min** que llama a una server route `/api/public/hooks/send-summaries`. La ruta:
+   - Busca usuarios cuya hora local actual coincida con `send_hour` (y día con `weekday` si semanal)
+   - Evita duplicados con tabla `summary_send_log` (un envío por usuario por día)
+   - Encola el email vía la cola de emails de Lovable
 
-## Detalles técnicos
+---
 
-- **Stack:** TanStack Start + Tailwind + shadcn/ui (ya configurado).
-- **Backend:** Lovable Cloud (se activa en este paso) para auth, base de datos y RLS.
-- **Tablas principales:**
-  - `households` (id, name, invite_code)
-  - `household_members` (household_id, user_id, role, display_name)
-  - `profiles` (id, display_name, avatar_color)
-  - `shopping_items` (household_id, name, qty, category, bought, created_by)
-  - `tasks` (household_id, title, description, due_date, assigned_to, status, created_by)
-  - `events` (household_id, title, description, starts_at, ends_at, created_by)
-  - `event_assignees` (event_id, user_id)
-- **Seguridad:** RLS estricta — cada usuario solo ve datos de los hogares a los que pertenece (función `is_household_member(uid, hid)` con SECURITY DEFINER para evitar recursión).
-- **Notificaciones:** se calculan en cliente desde `tasks` y `events` próximos; campana en el header con popover.
-- **Calendario:** componente shadcn `Calendar` + lista de eventos del día seleccionado.
-- **Realtime (opcional, fácil de sumar después):** suscripción Supabase a cambios en las tablas para que los integrantes vean updates en vivo.
+## Entrega 2 — Push del navegador (PWA)
 
-## Lo que queda para entregas futuras (acordado: "empezar simple")
+**Lo que vas a poder hacer:** activar notificaciones push desde el celular/escritorio y recibir el mismo resumen + avisos puntuales (ej. "tarea vence en 1h").
 
-- Mantenimientos recurrentes (filtros de aire, service del auto, etc.).
-- Pagos: alquiler y servicios, con recordatorios de vencimiento y estado pagado/pendiente.
-- Notificaciones push del navegador o email.
-- Gastos compartidos / quién debe a quién.
+### Cambios
 
-¿Avanzo con esta primera versión?
+1. Botón "Activar notificaciones" que pide permiso y registra la suscripción Web Push.
+2. Tabla `push_subscriptions` (endpoint, keys, user_id).
+3. Secret `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` (te los genero y guardo).
+4. Service worker mínimo para mostrar la notificación.
+5. El mismo cron de resúmenes envía push si `channel_push = true`.
+
+---
+
+## Entrega 3 — Google Calendar bidireccional
+
+**Lo que vas a poder hacer:** cada integrante conecta su cuenta de Google una vez. Los eventos del hogar se crean automáticamente en su Google Calendar, y sus eventos de Google aparecen en la app (opcional, filtrable por calendario).
+
+### Lo que necesito de vos primero
+
+Como cada usuario conecta **su propia** cuenta de Google (no la tuya), Lovable no puede usar su conector estándar — hace falta crear credenciales OAuth propias en Google Cloud. Te guío paso a paso cuando arranquemos:
+
+1. Crear proyecto en https://console.cloud.google.com
+2. Activar Google Calendar API
+3. Configurar pantalla de consentimiento OAuth (modo "Externo")
+4. Crear credenciales "OAuth 2.0 Client ID" tipo Web
+5. Pegarme **Client ID** y **Client Secret** → los guardo como secrets `GOOGLE_OAUTH_CLIENT_ID` y `GOOGLE_OAUTH_CLIENT_SECRET`
+
+### Cambios técnicos
+
+1. Tabla `google_calendar_tokens` (user_id, access_token, refresh_token, expires_at, calendar_id).
+2. Rutas server: `/api/google/oauth/start` y `/api/google/oauth/callback` para el flujo OAuth.
+3. Server fn `syncEventToGoogle` que crea/actualiza/borra el evento en Google cuando se modifica en la app.
+4. Server fn `pullGoogleEvents` (cron cada hora) que importa eventos del calendario seleccionado al hogar.
+5. UI en `/perfil`: botón "Conectar Google Calendar", estado de conexión, selector de calendario destino, botón desconectar.
+
+---
+
+## Cómo seguimos
+
+Te propongo arrancar por la **Entrega 1** (es la que más valor da más rápido y no depende de nada externo). Cuando esté andando, seguimos con la 2 y 3.
+
+¿Avanzo con la Entrega 1?
