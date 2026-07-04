@@ -89,11 +89,25 @@ function PaymentsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("payments")
-        .select("id,name,category,amount,currency,recurrence,next_due_date,notes")
+        .select("id,name,category,amount,currency,recurrence,next_due_date,notes,expense_category_id")
         .eq("household_id", household!.id)
         .order("next_due_date", { ascending: true });
       if (error) throw error;
       return data as Payment[];
+    },
+  });
+
+  const { data: expenseCategories = [] } = useQuery({
+    queryKey: ["expense-categories", household?.id],
+    enabled: !!household && canManageEconomic,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("expense_categories")
+        .select("id,name,color")
+        .eq("household_id", household!.id)
+        .order("name");
+      if (error) throw error;
+      return data as ExpenseCategory[];
     },
   });
 
