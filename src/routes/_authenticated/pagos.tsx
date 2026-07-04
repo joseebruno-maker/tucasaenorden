@@ -126,14 +126,37 @@ function PaymentsPage() {
 
   const markPaid = useMutation({
     mutationFn: async ({ p, amount }: { p: Payment; amount: number | null }) => {
+      const paidAt = new Date();
+      // 1. Create the expense (if there's an amount) so it shows in Gastos
+      let expenseId: string | null = null;
+      if (amount != null) {
+        const { data: exp, error: expErr } = await supabase
+          .from("expenses")
+          .insert({
+            household_id: household!.id,
+            category_id: p.expense_category_id,
+            amount,
+            currency: p.currency,
+            description: p.name,
+            spent_at: paidAt.toISOString().slice(0, 10),
+            created_by: user!.id,
+          })
+          .select("id")
+          .single();
+        if (expErr) throw expErr;
+        expenseId = exp.id;
+      }
+      // 2. Create the payment history row linked to that expense
       const { error: histErr } = await supabase.from("payment_history").insert({
         payment_id: p.id,
         household_id: household!.id,
         paid_by: user!.id,
         amount,
         currency: p.currency,
+        expense_id: expenseId,
       });
       if (histErr) throw histErr;
+      // 3. Advance the payment and update its default amount
       const updates: { next_due_date?: string; amount?: number | null } = {};
       if (amount != null && amount !== p.amount) updates.amount = amount;
       if (p.recurrence !== "one_time") {
@@ -146,10 +169,11 @@ function PaymentsPage() {
       }
     },
     onSuccess: () => {
-      toast.success("Pago registrado");
+      toast.success("Pago registrado y agregado a Gastos");
       setPayOpenFor(null);
       qc.invalidateQueries({ queryKey: ["payments"] });
       qc.invalidateQueries({ queryKey: ["payment-history"] });
+      qc.invalidateQueries({ queryKey: ["expenses"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
