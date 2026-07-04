@@ -226,7 +226,7 @@ function PaymentsPage() {
           <DialogTrigger asChild><Button><Plus className="h-4 w-4 mr-1" />Nuevo</Button></DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>Nuevo pago</DialogTitle></DialogHeader>
-            <NewForm onDone={() => { setOpen(false); qc.invalidateQueries({ queryKey: ["payments"] }); }} />
+            <NewForm expenseCategories={expenseCategories} onDone={() => { setOpen(false); qc.invalidateQueries({ queryKey: ["payments"] }); }} />
           </DialogContent>
         </Dialog>
       </div>
