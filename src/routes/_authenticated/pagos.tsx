@@ -267,6 +267,9 @@ function PaymentsPage() {
                       <Check className="h-4 w-4 mr-1" />Pagado
                     </Button>
                     <div className="flex gap-1 justify-end">
+                      <button onClick={() => setEditOpenFor(p)} className="px-2 text-muted-foreground hover:text-foreground" title="Editar">
+                        <Pencil className="h-4 w-4" />
+                      </button>
                       <button onClick={() => setHistoryOpenFor(p)} className="px-2 text-muted-foreground hover:text-foreground" title="Historial">
                         <History className="h-4 w-4" />
                       </button>
