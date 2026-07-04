@@ -31,6 +31,13 @@ interface Payment {
   recurrence: Recurrence;
   next_due_date: string;
   notes: string | null;
+  expense_category_id: string | null;
+}
+
+interface ExpenseCategory {
+  id: string;
+  name: string;
+  color: string;
 }
 
 interface HistoryRow {
