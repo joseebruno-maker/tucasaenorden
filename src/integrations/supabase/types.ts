@@ -562,6 +562,7 @@ export type Database = {
         Row: {
           amount: number | null
           currency: string
+          expense_id: string | null
           household_id: string
           id: string
           notes: string | null
@@ -572,6 +573,7 @@ export type Database = {
         Insert: {
           amount?: number | null
           currency?: string
+          expense_id?: string | null
           household_id: string
           id?: string
           notes?: string | null
@@ -582,6 +584,7 @@ export type Database = {
         Update: {
           amount?: number | null
           currency?: string
+          expense_id?: string | null
           household_id?: string
           id?: string
           notes?: string | null
@@ -590,6 +593,13 @@ export type Database = {
           payment_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "payment_history_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "payment_history_household_id_fkey"
             columns: ["household_id"]
@@ -613,6 +623,7 @@ export type Database = {
           created_at: string
           created_by: string
           currency: string
+          expense_category_id: string | null
           household_id: string
           id: string
           name: string
@@ -626,6 +637,7 @@ export type Database = {
           created_at?: string
           created_by: string
           currency?: string
+          expense_category_id?: string | null
           household_id: string
           id?: string
           name: string
@@ -639,6 +651,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           currency?: string
+          expense_category_id?: string | null
           household_id?: string
           id?: string
           name?: string
@@ -647,6 +660,13 @@ export type Database = {
           recurrence?: Database["public"]["Enums"]["payment_recurrence"]
         }
         Relationships: [
+          {
+            foreignKeyName: "payments_expense_category_id_fkey"
+            columns: ["expense_category_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "payments_household_id_fkey"
             columns: ["household_id"]

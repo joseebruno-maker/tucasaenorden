@@ -31,6 +31,13 @@ interface Payment {
   recurrence: Recurrence;
   next_due_date: string;
   notes: string | null;
+  expense_category_id: string | null;
+}
+
+interface ExpenseCategory {
+  id: string;
+  name: string;
+  color: string;
 }
 
 interface HistoryRow {
@@ -82,11 +89,25 @@ function PaymentsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("payments")
-        .select("id,name,category,amount,currency,recurrence,next_due_date,notes")
+        .select("id,name,category,amount,currency,recurrence,next_due_date,notes,expense_category_id")
         .eq("household_id", household!.id)
         .order("next_due_date", { ascending: true });
       if (error) throw error;
       return data as Payment[];
+    },
+  });
+
+  const { data: expenseCategories = [] } = useQuery({
+    queryKey: ["expense-categories", household?.id],
+    enabled: !!household && canManageEconomic,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("expense_categories")
+        .select("id,name,color")
+        .eq("household_id", household!.id)
+        .order("name");
+      if (error) throw error;
+      return data as ExpenseCategory[];
     },
   });
 
@@ -105,14 +126,37 @@ function PaymentsPage() {
 
   const markPaid = useMutation({
     mutationFn: async ({ p, amount }: { p: Payment; amount: number | null }) => {
+      const paidAt = new Date();
+      // 1. Create the expense (if there's an amount) so it shows in Gastos
+      let expenseId: string | null = null;
+      if (amount != null) {
+        const { data: exp, error: expErr } = await supabase
+          .from("expenses")
+          .insert({
+            household_id: household!.id,
+            category_id: p.expense_category_id,
+            amount,
+            currency: p.currency,
+            description: p.name,
+            spent_at: paidAt.toISOString().slice(0, 10),
+            created_by: user!.id,
+          })
+          .select("id")
+          .single();
+        if (expErr) throw expErr;
+        expenseId = exp.id;
+      }
+      // 2. Create the payment history row linked to that expense
       const { error: histErr } = await supabase.from("payment_history").insert({
         payment_id: p.id,
         household_id: household!.id,
         paid_by: user!.id,
         amount,
         currency: p.currency,
+        expense_id: expenseId,
       });
       if (histErr) throw histErr;
+      // 3. Advance the payment and update its default amount
       const updates: { next_due_date?: string; amount?: number | null } = {};
       if (amount != null && amount !== p.amount) updates.amount = amount;
       if (p.recurrence !== "one_time") {
@@ -125,10 +169,11 @@ function PaymentsPage() {
       }
     },
     onSuccess: () => {
-      toast.success("Pago registrado");
+      toast.success("Pago registrado y agregado a Gastos");
       setPayOpenFor(null);
       qc.invalidateQueries({ queryKey: ["payments"] });
       qc.invalidateQueries({ queryKey: ["payment-history"] });
+      qc.invalidateQueries({ queryKey: ["expenses"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -181,7 +226,7 @@ function PaymentsPage() {
           <DialogTrigger asChild><Button><Plus className="h-4 w-4 mr-1" />Nuevo</Button></DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>Nuevo pago</DialogTitle></DialogHeader>
-            <NewForm onDone={() => { setOpen(false); qc.invalidateQueries({ queryKey: ["payments"] }); }} />
+            <NewForm expenseCategories={expenseCategories} onDone={() => { setOpen(false); qc.invalidateQueries({ queryKey: ["payments"] }); }} />
           </DialogContent>
         </Dialog>
       </div>
@@ -307,11 +352,12 @@ function HistoryList({ paymentId, members }: { paymentId: string; members: { use
   );
 }
 
-function NewForm({ onDone }: { onDone: () => void }) {
+function NewForm({ onDone, expenseCategories }: { onDone: () => void; expenseCategories: ExpenseCategory[] }) {
   const { household } = useHousehold();
   const { user } = useAuth();
   const [name, setName] = useState("");
   const [category, setCategory] = useState<Category>("service");
+  const [expenseCategoryId, setExpenseCategoryId] = useState<string>("__none__");
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState("Bs.");
   const [recurrence, setRecurrence] = useState<Recurrence>("monthly");
@@ -332,6 +378,7 @@ function NewForm({ onDone }: { onDone: () => void }) {
       recurrence,
       next_due_date: next,
       notes: notes.trim() || null,
+      expense_category_id: expenseCategoryId === "__none__" ? null : expenseCategoryId,
     });
     setLoading(false);
     if (error) return toast.error(error.message);
@@ -343,7 +390,7 @@ function NewForm({ onDone }: { onDone: () => void }) {
       <div><Label>Nombre</Label><Input required maxLength={80} value={name} onChange={(e) => setName(e.target.value)} placeholder="Alquiler, Luz, Internet…" /></div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label>Categoría</Label>
+          <Label>Tipo</Label>
           <Select value={category} onValueChange={(v) => setCategory(v as Category)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -366,6 +413,21 @@ function NewForm({ onDone }: { onDone: () => void }) {
             </SelectContent>
           </Select>
         </div>
+      </div>
+      <div>
+        <Label>Categoría de Gastos</Label>
+        <Select value={expenseCategoryId} onValueChange={setExpenseCategoryId}>
+          <SelectTrigger><SelectValue placeholder="Sin categoría" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__none__">Sin categoría</SelectItem>
+            {expenseCategories.map((c) => (
+              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Al marcar como pagado se registra automáticamente en Gastos con esta categoría.
+        </p>
       </div>
       <div className="grid grid-cols-3 gap-3">
         <div className="col-span-2"><Label>Monto</Label><Input type="number" step="0.01" min={0} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" /></div>
