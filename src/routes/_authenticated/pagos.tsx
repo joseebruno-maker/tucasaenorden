@@ -459,3 +459,88 @@ function NewForm({ onDone, expenseCategories }: { onDone: () => void; expenseCat
     </form>
   );
 }
+
+function EditForm({ payment, expenseCategories, onDone }: { payment: Payment; expenseCategories: ExpenseCategory[]; onDone: () => void }) {
+  const [name, setName] = useState(payment.name);
+  const [category, setCategory] = useState<Category>(payment.category);
+  const [expenseCategoryId, setExpenseCategoryId] = useState<string>(payment.expense_category_id ?? "__none__");
+  const [amount, setAmount] = useState(payment.amount != null ? String(payment.amount) : "");
+  const [currency, setCurrency] = useState(payment.currency);
+  const [recurrence, setRecurrence] = useState<Recurrence>(payment.recurrence);
+  const [next, setNext] = useState(payment.next_due_date);
+  const [notes, setNotes] = useState(payment.notes ?? "");
+  const [loading, setLoading] = useState(false);
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const { error } = await supabase
+      .from("payments")
+      .update({
+        name: name.trim(),
+        category,
+        amount: amount ? parseFloat(amount) : null,
+        currency: currency.trim() || "Bs.",
+        recurrence,
+        next_due_date: next,
+        notes: notes.trim() || null,
+        expense_category_id: expenseCategoryId === "__none__" ? null : expenseCategoryId,
+      })
+      .eq("id", payment.id);
+    setLoading(false);
+    if (error) return toast.error(error.message);
+    toast.success("Pago actualizado");
+    onDone();
+  };
+
+  return (
+    <form onSubmit={submit} className="space-y-3">
+      <div><Label>Nombre</Label><Input required maxLength={80} value={name} onChange={(e) => setName(e.target.value)} /></div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <Label>Tipo</Label>
+          <Select value={category} onValueChange={(v) => setCategory(v as Category)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="rent">Alquiler</SelectItem>
+              <SelectItem value="service">Servicio</SelectItem>
+              <SelectItem value="other">Otro</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label>Recurrencia</Label>
+          <Select value={recurrence} onValueChange={(v) => setRecurrence(v as Recurrence)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="monthly">Mensual</SelectItem>
+              <SelectItem value="bimonthly">Bimestral</SelectItem>
+              <SelectItem value="quarterly">Trimestral</SelectItem>
+              <SelectItem value="yearly">Anual</SelectItem>
+              <SelectItem value="one_time">Único</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div>
+        <Label>Categoría de Gastos</Label>
+        <Select value={expenseCategoryId} onValueChange={setExpenseCategoryId}>
+          <SelectTrigger><SelectValue placeholder="Sin categoría" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__none__">Sin categoría</SelectItem>
+            {expenseCategories.map((c) => (
+              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <div className="col-span-2"><Label>Monto</Label><Input type="number" step="0.01" min={0} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" /></div>
+        <div><Label>Moneda</Label><Input maxLength={5} value={currency} onChange={(e) => setCurrency(e.target.value)} /></div>
+      </div>
+      <div><Label>Próximo vencimiento</Label><Input type="date" required value={next} onChange={(e) => setNext(e.target.value)} /></div>
+      <div><Label>Notas</Label><Textarea rows={2} maxLength={300} value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
+      <Button type="submit" disabled={loading || !name.trim()} className="w-full">{loading ? "Guardando…" : "Guardar cambios"}</Button>
+    </form>
+  );
+}
