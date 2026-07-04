@@ -319,6 +319,22 @@ function PaymentsPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!editOpenFor} onOpenChange={(v) => !v && setEditOpenFor(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar pago</DialogTitle></DialogHeader>
+          {editOpenFor && (
+            <EditForm
+              payment={editOpenFor}
+              expenseCategories={expenseCategories}
+              onDone={() => {
+                setEditOpenFor(null);
+                qc.invalidateQueries({ queryKey: ["payments"] });
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
