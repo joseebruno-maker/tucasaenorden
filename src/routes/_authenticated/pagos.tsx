@@ -352,11 +352,12 @@ function HistoryList({ paymentId, members }: { paymentId: string; members: { use
   );
 }
 
-function NewForm({ onDone }: { onDone: () => void }) {
+function NewForm({ onDone, expenseCategories }: { onDone: () => void; expenseCategories: ExpenseCategory[] }) {
   const { household } = useHousehold();
   const { user } = useAuth();
   const [name, setName] = useState("");
   const [category, setCategory] = useState<Category>("service");
+  const [expenseCategoryId, setExpenseCategoryId] = useState<string>("__none__");
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState("Bs.");
   const [recurrence, setRecurrence] = useState<Recurrence>("monthly");
@@ -377,6 +378,7 @@ function NewForm({ onDone }: { onDone: () => void }) {
       recurrence,
       next_due_date: next,
       notes: notes.trim() || null,
+      expense_category_id: expenseCategoryId === "__none__" ? null : expenseCategoryId,
     });
     setLoading(false);
     if (error) return toast.error(error.message);
@@ -388,7 +390,7 @@ function NewForm({ onDone }: { onDone: () => void }) {
       <div><Label>Nombre</Label><Input required maxLength={80} value={name} onChange={(e) => setName(e.target.value)} placeholder="Alquiler, Luz, Internet…" /></div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label>Categoría</Label>
+          <Label>Tipo</Label>
           <Select value={category} onValueChange={(v) => setCategory(v as Category)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -411,6 +413,21 @@ function NewForm({ onDone }: { onDone: () => void }) {
             </SelectContent>
           </Select>
         </div>
+      </div>
+      <div>
+        <Label>Categoría de Gastos</Label>
+        <Select value={expenseCategoryId} onValueChange={setExpenseCategoryId}>
+          <SelectTrigger><SelectValue placeholder="Sin categoría" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__none__">Sin categoría</SelectItem>
+            {expenseCategories.map((c) => (
+              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Al marcar como pagado se registra automáticamente en Gastos con esta categoría.
+        </p>
       </div>
       <div className="grid grid-cols-3 gap-3">
         <div className="col-span-2"><Label>Monto</Label><Input type="number" step="0.01" min={0} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" /></div>
