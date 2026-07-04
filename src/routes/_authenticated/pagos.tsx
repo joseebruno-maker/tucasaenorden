@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Trash2, Check, Lock, History } from "lucide-react";
+import { Plus, Trash2, Check, Lock, History, Pencil } from "lucide-react";
 import { format, differenceInDays, addMonths } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -81,6 +81,7 @@ function PaymentsPage() {
   const [open, setOpen] = useState(false);
   const [historyOpenFor, setHistoryOpenFor] = useState<Payment | null>(null);
   const [payOpenFor, setPayOpenFor] = useState<Payment | null>(null);
+  const [editOpenFor, setEditOpenFor] = useState<Payment | null>(null);
   const [payAmount, setPayAmount] = useState("");
 
   const { data: payments = [] } = useQuery({
@@ -266,6 +267,9 @@ function PaymentsPage() {
                       <Check className="h-4 w-4 mr-1" />Pagado
                     </Button>
                     <div className="flex gap-1 justify-end">
+                      <button onClick={() => setEditOpenFor(p)} className="px-2 text-muted-foreground hover:text-foreground" title="Editar">
+                        <Pencil className="h-4 w-4" />
+                      </button>
                       <button onClick={() => setHistoryOpenFor(p)} className="px-2 text-muted-foreground hover:text-foreground" title="Historial">
                         <History className="h-4 w-4" />
                       </button>
@@ -313,6 +317,22 @@ function PaymentsPage() {
               {markPaid.isPending ? "Guardando…" : "Confirmar pago"}
             </Button>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!editOpenFor} onOpenChange={(v) => !v && setEditOpenFor(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar pago</DialogTitle></DialogHeader>
+          {editOpenFor && (
+            <EditForm
+              payment={editOpenFor}
+              expenseCategories={expenseCategories}
+              onDone={() => {
+                setEditOpenFor(null);
+                qc.invalidateQueries({ queryKey: ["payments"] });
+              }}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
@@ -436,6 +456,91 @@ function NewForm({ onDone, expenseCategories }: { onDone: () => void; expenseCat
       <div><Label>Próximo vencimiento</Label><Input type="date" required value={next} onChange={(e) => setNext(e.target.value)} /></div>
       <div><Label>Notas</Label><Textarea rows={2} maxLength={300} value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
       <Button type="submit" disabled={loading || !name.trim()} className="w-full">{loading ? "Guardando…" : "Crear pago"}</Button>
+    </form>
+  );
+}
+
+function EditForm({ payment, expenseCategories, onDone }: { payment: Payment; expenseCategories: ExpenseCategory[]; onDone: () => void }) {
+  const [name, setName] = useState(payment.name);
+  const [category, setCategory] = useState<Category>(payment.category);
+  const [expenseCategoryId, setExpenseCategoryId] = useState<string>(payment.expense_category_id ?? "__none__");
+  const [amount, setAmount] = useState(payment.amount != null ? String(payment.amount) : "");
+  const [currency, setCurrency] = useState(payment.currency);
+  const [recurrence, setRecurrence] = useState<Recurrence>(payment.recurrence);
+  const [next, setNext] = useState(payment.next_due_date);
+  const [notes, setNotes] = useState(payment.notes ?? "");
+  const [loading, setLoading] = useState(false);
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const { error } = await supabase
+      .from("payments")
+      .update({
+        name: name.trim(),
+        category,
+        amount: amount ? parseFloat(amount) : null,
+        currency: currency.trim() || "Bs.",
+        recurrence,
+        next_due_date: next,
+        notes: notes.trim() || null,
+        expense_category_id: expenseCategoryId === "__none__" ? null : expenseCategoryId,
+      })
+      .eq("id", payment.id);
+    setLoading(false);
+    if (error) return toast.error(error.message);
+    toast.success("Pago actualizado");
+    onDone();
+  };
+
+  return (
+    <form onSubmit={submit} className="space-y-3">
+      <div><Label>Nombre</Label><Input required maxLength={80} value={name} onChange={(e) => setName(e.target.value)} /></div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <Label>Tipo</Label>
+          <Select value={category} onValueChange={(v) => setCategory(v as Category)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="rent">Alquiler</SelectItem>
+              <SelectItem value="service">Servicio</SelectItem>
+              <SelectItem value="other">Otro</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label>Recurrencia</Label>
+          <Select value={recurrence} onValueChange={(v) => setRecurrence(v as Recurrence)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="monthly">Mensual</SelectItem>
+              <SelectItem value="bimonthly">Bimestral</SelectItem>
+              <SelectItem value="quarterly">Trimestral</SelectItem>
+              <SelectItem value="yearly">Anual</SelectItem>
+              <SelectItem value="one_time">Único</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div>
+        <Label>Categoría de Gastos</Label>
+        <Select value={expenseCategoryId} onValueChange={setExpenseCategoryId}>
+          <SelectTrigger><SelectValue placeholder="Sin categoría" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__none__">Sin categoría</SelectItem>
+            {expenseCategories.map((c) => (
+              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <div className="col-span-2"><Label>Monto</Label><Input type="number" step="0.01" min={0} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" /></div>
+        <div><Label>Moneda</Label><Input maxLength={5} value={currency} onChange={(e) => setCurrency(e.target.value)} /></div>
+      </div>
+      <div><Label>Próximo vencimiento</Label><Input type="date" required value={next} onChange={(e) => setNext(e.target.value)} /></div>
+      <div><Label>Notas</Label><Textarea rows={2} maxLength={300} value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
+      <Button type="submit" disabled={loading || !name.trim()} className="w-full">{loading ? "Guardando…" : "Guardar cambios"}</Button>
     </form>
   );
 }
