@@ -250,7 +250,152 @@ function PerfilPage() {
           {save.isPending ? "Guardando…" : "Guardar preferencias"}
         </Button>
       </Card>
+
+      <TelegramCard />
     </div>
+  );
+}
+
+function TelegramCard() {
+  const { household } = useHousehold();
+  const qc = useQueryClient();
+  const [copied, setCopied] = useState(false);
+  const getStatus = useServerFn(getTelegramStatus);
+  const createCode = useServerFn(createTelegramCode);
+  const unlink = useServerFn(unlinkTelegram);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["telegram-status", household?.id],
+    enabled: !!household,
+    queryFn: () => getStatus({ data: { householdId: household!.id } }),
+  });
+
+  const genMut = useMutation({
+    mutationFn: () => createCode({ data: { householdId: household!.id } }),
+    onSuccess: () => {
+      toast.success("Código generado");
+      qc.invalidateQueries({ queryKey: ["telegram-status"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const unlinkMut = useMutation({
+    mutationFn: (id: string) => unlink({ data: { linkId: id } }),
+    onSuccess: () => {
+      toast.success("Cuenta desvinculada");
+      qc.invalidateQueries({ queryKey: ["telegram-status"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const activeCode = data?.activeCode?.code;
+  const link = data?.link;
+
+  const copyCode = async () => {
+    if (!activeCode) return;
+    await navigator.clipboard.writeText(activeCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  return (
+    <Card className="p-5 space-y-4">
+      <div className="flex items-center gap-2">
+        <Send className="h-4 w-4 text-primary" />
+        <h2 className="font-semibold">Bot de Telegram</h2>
+      </div>
+      <p className="text-sm text-muted-foreground">
+        Registrá gastos, compras, pendientes y pagos mandándole mensajes
+        (texto o audio) al bot.
+      </p>
+
+      {isLoading ? (
+        <div className="text-sm text-muted-foreground">Cargando…</div>
+      ) : link ? (
+        <div className="space-y-3">
+          <div className="rounded-md border p-3 text-sm">
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-green-600" />
+              <span className="font-medium">Cuenta vinculada</span>
+            </div>
+            {link.telegram_username && (
+              <div className="mt-1 text-muted-foreground">
+                @{link.telegram_username}
+              </div>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Button asChild variant="outline" className="flex-1">
+              <a
+                href={`https://t.me/${BOT_USERNAME}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Abrir bot
+              </a>
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => unlinkMut.mutate(link.id)}
+              disabled={unlinkMut.isPending}
+            >
+              Desvincular
+            </Button>
+          </div>
+        </div>
+      ) : activeCode ? (
+        <div className="space-y-3">
+          <div className="rounded-md border-2 border-dashed p-4 text-center">
+            <div className="text-xs text-muted-foreground mb-1">
+              Tu código (válido 15 min)
+            </div>
+            <div className="flex items-center justify-center gap-2">
+              <div className="text-3xl font-mono font-bold tracking-widest">
+                {activeCode}
+              </div>
+              <Button size="icon" variant="ghost" onClick={copyCode}>
+                {copied ? (
+                  <Check className="h-4 w-4" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+          </div>
+          <ol className="text-sm space-y-1 list-decimal list-inside text-muted-foreground">
+            <li>
+              Abrí{" "}
+              <a
+                className="text-primary underline"
+                href={`https://t.me/${BOT_USERNAME}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                @{BOT_USERNAME}
+              </a>
+            </li>
+            <li>Enviá el código al bot</li>
+            <li>Listo, ya podés mandarle mensajes</li>
+          </ol>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => genMut.mutate()}
+            disabled={genMut.isPending}
+          >
+            Generar código nuevo
+          </Button>
+        </div>
+      ) : (
+        <Button
+          className="w-full"
+          onClick={() => genMut.mutate()}
+          disabled={genMut.isPending || !household}
+        >
+          {genMut.isPending ? "Generando…" : "Vincular con Telegram"}
+        </Button>
+      )}
+    </Card>
   );
 }
 
