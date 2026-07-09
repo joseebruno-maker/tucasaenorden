@@ -915,6 +915,127 @@ export type Database = {
           },
         ]
       }
+      telegram_link_codes: {
+        Row: {
+          code: string
+          created_at: string
+          expires_at: string
+          household_id: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          expires_at: string
+          household_id: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          expires_at?: string
+          household_id?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "telegram_link_codes_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      telegram_links: {
+        Row: {
+          created_at: string
+          household_id: string
+          id: string
+          telegram_chat_id: number
+          telegram_user_id: number
+          telegram_username: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          household_id: string
+          id?: string
+          telegram_chat_id: number
+          telegram_user_id: number
+          telegram_username?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          household_id?: string
+          id?: string
+          telegram_chat_id?: number
+          telegram_user_id?: number
+          telegram_username?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "telegram_links_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      telegram_messages: {
+        Row: {
+          chat_id: number | null
+          created_at: string
+          error: string | null
+          household_id: string | null
+          intent: string | null
+          message_kind: string | null
+          raw_text: string | null
+          raw_update: Json
+          status: string | null
+          telegram_user_id: number | null
+          transcript: string | null
+          update_id: number
+          user_id: string | null
+        }
+        Insert: {
+          chat_id?: number | null
+          created_at?: string
+          error?: string | null
+          household_id?: string | null
+          intent?: string | null
+          message_kind?: string | null
+          raw_text?: string | null
+          raw_update: Json
+          status?: string | null
+          telegram_user_id?: number | null
+          transcript?: string | null
+          update_id: number
+          user_id?: string | null
+        }
+        Update: {
+          chat_id?: number | null
+          created_at?: string
+          error?: string | null
+          household_id?: string | null
+          intent?: string | null
+          message_kind?: string | null
+          raw_text?: string | null
+          raw_update?: Json
+          status?: string | null
+          telegram_user_id?: number | null
+          transcript?: string | null
+          update_id?: number
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
