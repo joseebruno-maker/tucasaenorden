@@ -15,8 +15,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Bell, Mail } from "lucide-react";
+import { Bell, Mail, Send, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import {
+  getTelegramStatus,
+  createTelegramCode,
+  unlinkTelegram,
+} from "@/lib/telegram.functions";
+
+const BOT_USERNAME = "Mi_hogarbot";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   component: PerfilPage,
