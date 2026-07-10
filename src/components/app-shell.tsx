@@ -67,9 +67,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           </span>
           <span className="font-semibold">Mi Hogar</span>
         </Link>
-        <nav className="flex flex-1 flex-col gap-1">
-          <NavLinks />
-        </nav>
+            <nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
+              <NavLinks />
+            </nav>
         <Button variant="ghost" size="sm" onClick={signOut} className="justify-start gap-3">
           <LogOut className="h-4 w-4" /> Salir
         </Button>
@@ -88,7 +88,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </span>
               <span className="font-semibold">Mi Hogar</span>
             </div>
-            <nav className="flex flex-1 flex-col gap-1">
+            <nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
               <NavLinks />
             </nav>
             <Button variant="ghost" size="sm" onClick={signOut} className="justify-start gap-3">
