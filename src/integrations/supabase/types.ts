@@ -1081,6 +1081,7 @@ export type Database = {
         Args: { _household_id: string; _user_id: string }
         Returns: boolean
       }
+      join_household_by_invite: { Args: { _code: string }; Returns: string }
     }
     Enums: {
       activity_status: "pending" | "done"
