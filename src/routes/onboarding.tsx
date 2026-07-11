@@ -49,20 +49,11 @@ function OnboardingPage() {
     e.preventDefault();
     if (!user) return;
     setLoading(true);
-    const { data: hh, error } = await supabase
-      .from("households")
-      .select("id")
-      .eq("invite_code", code.trim().toUpperCase())
-      .maybeSingle();
-    if (error || !hh) {
-      setLoading(false);
-      return toast.error("Código inválido");
-    }
-    const { error: e2 } = await supabase
-      .from("household_members")
-      .insert({ household_id: hh.id, user_id: user.id });
+    const { error } = await supabase.rpc("join_household_by_invite", {
+      _code: code.trim().toUpperCase(),
+    });
     setLoading(false);
-    if (e2) return toast.error(e2.message);
+    if (error) return toast.error("Código inválido");
     toast.success("¡Te uniste al hogar!");
     await refetch();
     navigate({ to: "/dashboard" });
